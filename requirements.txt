@@ -1,0 +1,6 @@
+pydantic
+fastapi[all]
+bcrypt
+python-jose[cryptography]
+keyring
+keyrings.alt

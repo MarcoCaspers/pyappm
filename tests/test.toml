@@ -1,0 +1,10 @@
+[tools]
+option="value"
+tool1={option="value"}
+tool2={option="value"}
+
+[project]
+authors=[{name="John Doe", email="j.doe@example.com"}]
+pythonrequired=">=3.8"
+lst=[]
+

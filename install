@@ -1,0 +1,4 @@
+#!/bin/bash
+# This script is used to install the pyappm project
+python3 src/pyappm/installer.py uninstall
+python3 src/pyappm/installer.py install
