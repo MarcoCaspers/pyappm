@@ -95,7 +95,7 @@ class TomlParser:
         value = "".join([str(token.value) for token in self.tokens[start:end]])
         token = TomlToken("IDENTIFIER", value)
         if isvalue is True and value == "True" or value == "False":
-            token = TomlToken("BOOL", bool(value))
+            token = TomlToken("BOOL", value == "True")
         # print(f"Parse identifier: {token}")
         self._next()  # skip the last character
         return token

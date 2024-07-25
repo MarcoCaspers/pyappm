@@ -53,6 +53,15 @@ def is_virtual_env_active() -> bool:
 
 def find_pyapp_toml() -> Path | None:
     """Find the pyapp.toml file in the current directory or its parent directories."""
+
+    # But first check if we have a virtual environment, because that makes things a lot easier.
+    # Also it means that we can use pyappm from anywhere in the filesystem, whereas without the venv, we need to be in the project directory.
+    if is_virtual_env_active():
+        current_dir = Path(os.environ[ENV_ENVIRON]).parent
+        if Path(current_dir, APP_TOML).exists():
+            return Path(current_dir, APP_TOML)
+        return None  # We are in a virtual environment, but there is no pyapp.toml file in the parent directory.
+    # At this point, we must be in the project directory.
     current_dir = Path(os.getcwd())
     while current_dir != Path.home() and current_dir != Path("/"):
         if Path(current_dir, APP_TOML).exists():

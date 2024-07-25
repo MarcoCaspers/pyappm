@@ -73,10 +73,6 @@ def write_default_pyapp_toml(
     path: Path, app_name: str, config: PyAPPMConfiguration
 ) -> None:
     """Write the default pyapp.toml file to the specified path."""
-    print(config.authors)
-    authors = [DotDict(config.authors)]
-    print(authors)
-    print(config.dependencies)
     toml = DotDict(
         {
             "tools": DotDict(
@@ -95,7 +91,7 @@ def write_default_pyapp_toml(
                     "readme": "README.md",
                     "license": "LICENSE.txt",
                     "description": "",
-                    "authors": authors,
+                    "authors": config.authors,
                     "requires_python": config.requires_python,
                     "type": "application",
                     "dependencies": config.dependencies,
@@ -125,16 +121,16 @@ def init_pyapp(path: str, config: PyAPPMConfiguration) -> None:
     print(f"Initializing {app_name}")
     # Create the directory structure
     Path(pth, "src", app_name).mkdir(parents=True, exist_ok=True)
-    if config.create_gitignore:
+    if config.create_gitignore is True:
         print("Initializing .gitignore")
         Path(pth, ".gitignore").touch()
-    if config.create_init:
+    if config.create_init is True:
         print("Initializing __init__.py")
         Path(pth, "src", app_name, "__init__.py").touch()
-    if config.create_about:
+    if config.create_about is True:
         print("Initializing __about__.py")
         Path(pth, "src", app_name, "__about__.py").touch()
-    if config.create_typed:
+    if config.create_typed is True:
         print("Initializing py.typed")
         Path(pth, "src", app_name, "py.typed").touch()
     Path(pth, "tests").mkdir(exist_ok=True)

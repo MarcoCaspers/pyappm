@@ -53,13 +53,14 @@ from configuration import PyAPPMConfiguration  # type: ignore
 from app_init import init_pyapp  # type: ignore
 from app_dependencies import add_dependency  # type: ignore
 from app_dependencies import remove_dependency  # type: ignore
+from app_local_dependencies import add_local  # type: ignore
+from app_local_dependencies import remove_local  # type: ignore
+from app_builder import build_app  # type: ignore
 
-from dotdict import DotDict  # type: ignore
 from pyappm_tools import is_virtual_env_active  # type: ignore
 from pyappm_tools import find_pyapp_toml  # type: ignore
 from pyappm_tools import ensure_no_virtual_env  # type: ignore
 from pyappm_tools import run_command  # type: ignore
-from pyappm_tools import get_installed_packages  # type: ignore
 from pyappm_tools import make_dependancy_cmd  # type: ignore
 from pyappm_tools import get_arg_value  # type: ignore
 
@@ -368,157 +369,6 @@ def uninstall_app(name: str, config: PyAPPMConfiguration) -> None:
     app_path = Path(os.path.expanduser(config.app_dir), name)
     run_command(f"cd {app_path}; python3 setup.py uninstall")
     print(f"Uninstalled {name}")
-
-
-def build_app(path: Path, config: PyAPPMConfiguration) -> None:
-    """Build the application."""
-    print("Building the application...")
-    # [tools]
-    # env_create_tool = "python3 -m venv"
-    # env_name = "env"
-    # env_lib_installer = "python3 -m pip"
-    #
-    # [project]
-    # name = "demo"
-    # version = "1.0.0"
-    # readme = "README.md"
-    # license = "LICENSE.txt"
-    # description = ""
-    # authors = [{ name="Marco Caspers", email="SamaDevTeam@Westcon.com" }]
-    # requires_python = ">=3.9"
-    # dependencies = []
-    # local_dependencies = []
-    #
-    # [executable]
-    # demo = "demo:run"
-    #
-    # [includes]
-    # files = ["py.typed", ...]
-    # directories = [...]
-    archive = Path(path.parent, "build", f"{path.parent.name}.zip")
-    if Path.exists(archive):
-        archive.unlink()
-    toml = TomlReader(path).read()
-    zip_archive_relative = Path("../../build", f"{path.parent.name}.zip")
-    zip_archive = Path("build", f"{path.parent.name}.zip")
-    source_path = Path(path.parent, "src", path.parent.name)
-    commands = []
-    commands.append(
-        f'cd {source_path}; find . -type f \( -name "*.py" -o -name "py.typed" \) -exec zip -q {zip_archive_relative} {{}} +'
-    )
-    includes = toml.get("includes", {})
-    files = includes.get("files", [])
-    project = toml.get("project", {})
-    version = project.get("version", "1.0.0")
-    directories = includes.get("directories", [])
-    zip_cmd_source = f"cd {source_path};zip -q -u -r {zip_archive_relative}"
-    zip_cmd_parent = f"cd {path.parent};zip -q -u -r {zip_archive}"
-    zip_cmd_local = f"cd {Path(path.parent, 'deps')};zip -q -u -r {zip_archive}"
-    cmd_list_files = f"cd {path.parent};unzip -l -q {zip_archive} | awk 'NR>2 {{print $NF}}' | head -n -2"
-    cmd_move_archive = f"cd {path.parent};mv {zip_archive} "
-    cmd_files_list = f'cd {path.parent}; rm {Path("build", "files.lst")}'
-    for file in files:
-        if ".." in file:
-            print(f"Invalid file path in includes: {file}")
-            sys.exit(1)
-        commands.append(f"{zip_cmd_source} {file}")
-    for directory in directories:
-        if ".." in directory:
-            print(f"Invalid directory path in includes: {directory}")
-            sys.exit(1)
-        commands.append(f"{zip_cmd_parent} {directory}/*")
-    commands.append(f"{zip_cmd_local} ./*")
-    commands.append(f"{zip_cmd_parent} pyapp.toml")
-    commands.append(f"{zip_cmd_parent} LICENSE.txt")
-    commands.append(f"{zip_cmd_parent} README.md")
-    commands.append(f"{cmd_list_files} > build/files.lst")
-    commands.append(f"{zip_cmd_parent} build/files.lst")
-    commands.append(f"{cmd_move_archive} dist/{path.parent.name}-{version}.pap")
-    commands.append(cmd_files_list)
-    for command in commands:
-        run_command(command)
-    print("Done!")
-
-
-def add_local(path: Path, dep: str, config: PyAPPMConfiguration) -> None:
-    """Add a local dependency to the pyapp.toml file, and install it in the virtual environment."""
-
-    dep_path = Path(dep)
-
-    if not dep_path.exists():
-        print(f"Local dependency {dep} not found.")
-        return
-
-    with TomlReader(path) as reader:
-        data = reader.read()  # type: ignore
-
-    if "local_dependencies" not in data["project"]:
-        data["project"]["local_dependencies"] = []
-
-    for pkg in data["project"]["local_dependencies"]:
-        if pkg["name"] == dep_path.name:
-            print(f"{dep_path.name} is already in the local dependencies.")
-            return
-
-    deps_file_path = Path(path.parent, "deps")
-
-    print("Installing local dependency... (this may take a while)")
-    if dep_path.resolve().parent != deps_file_path:
-        # only copy the file if it's not already in the deps directory
-        run_command(f"cp {dep_path.resolve()} {deps_file_path}")
-    packages = get_installed_packages(path.parent, config)
-    run_command(
-        make_dependancy_cmd(
-            path.parent, config, "install", str(Path(deps_file_path, dep_path.name))
-        )
-    )
-    new_packages = get_installed_packages(path.parent, config)
-    new_deps = get_new_packages(packages, new_packages, dep)
-    pkg = {"name": dep, "new_packages": new_deps}
-    data["project"]["local_dependencies"].append(pkg)
-    with TomlWriter(path) as writer:
-        writer.write(data)
-    print(f"Installed local dependency {dep_path.name}")
-
-
-def remove_local(path: Path, dep: str, config: PyAPPMConfiguration) -> None:
-    """Remove a dependency from the pyapp.toml file."""
-    dep_path = Path(dep)
-
-    with TomlReader(path) as reader:
-        data = reader.read()  # type: ignore
-
-    if "local_dependencies" not in data["project"]:
-        print("No dependencies found.")
-        sys.exit(1)
-    found = None
-
-    for pkg in data["project"]["local_dependencies"]:
-        if pkg["name"] == dep_path.name:
-            found = pkg
-            break
-    if not found:
-        print(f"{dep} is not in the local dependencies.")
-        return
-
-    print("Removing dependency... (this may take a while)")
-    # run_command(make_dependancy_cmd(path.parent, config, "uninstall -y", dep)) # this is not needed for local dependencies, the local depedency will also be in new_packages
-    for pkg in found["new_packages"]:
-        run_command(make_dependancy_cmd(path.parent, config, "uninstall -y", pkg))
-
-    data["project"]["local_dependencies"] = [
-        pkg
-        for pkg in data["project"]["local_dependencies"]
-        if pkg["name"] != dep_path.name
-    ]
-    with TomlWriter(path) as writer:
-        writer.write(data)
-
-    deps_path = Path(path.parent, "deps", dep_path.name)
-    if deps_path.exists():
-        deps_path.unlink()
-
-    print(f"Removed {dep_path.name}")
 
 
 def main() -> None:
