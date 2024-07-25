@@ -109,7 +109,7 @@ def build_app(path: Path, config: PyAPPMConfiguration) -> None:
     commands.append(f"{zip_cmd_parent} README.md")
     commands.append(f"{cmd_list_files} > build/files.lst")
     commands.append(f"{zip_cmd_build} files.lst")
-    commands.append(f"{cmd_move_archive} dist/{path.parent.name}-{version}.{PYAPP_EXT}")
+    commands.append(f"{cmd_move_archive} dist/{path.parent.name}-{version}{PYAPP_EXT}")
     commands.append(cmd_files_list)
     for command in commands:
         run_command(command)
