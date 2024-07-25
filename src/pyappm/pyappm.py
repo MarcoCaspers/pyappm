@@ -54,7 +54,7 @@ from app_init import init_pyapp  # type: ignore
 from app_dependencies import add_dependency  # type: ignore
 from app_dependencies import remove_dependency  # type: ignore
 
-from pyappm_tools import DotDict  # type: ignore
+from dotdict import DotDict  # type: ignore
 from pyappm_tools import is_virtual_env_active  # type: ignore
 from pyappm_tools import find_pyapp_toml  # type: ignore
 from pyappm_tools import ensure_no_virtual_env  # type: ignore

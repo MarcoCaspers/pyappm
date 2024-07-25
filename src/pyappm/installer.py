@@ -45,25 +45,21 @@ import subprocess
 
 from pathlib import Path
 
-__version__ = "1.0.0.aplha.2"
-__author__ = "Marco Caspers"
-__copyright__ = "Copyright 2024 Marco Caspers"
-__license__ = "MIT"
-
-# Define the Linux/Windows dependencies
-LINUX_DEPENDENCIES = ["wget", "unzip"]
-WINDOWS_DEPENDENCIES = ["wget.exe", "unzip.exe"]
-MINIMUM_PYTHON_VERSION = (3, 10)
-
-DOWNLOAD_URL = "https://pyappm.nl/downloads/pyappm.zip"
-
-INSTALL_DIR = Path("~/.pyappm").expanduser()
-BIN_DIR = Path("~/.local/bin").expanduser()
-APP_DIR = Path("~/.pyappm/share/applications").expanduser()
-DL_CACHE = Path("~/.cache/pyappm").expanduser()
-TMP_DIR = Path("/tmp/pyappm")
-EXE_NAME = "pyappm"
-CFG_DIR = Path("~/.config/pyappm").expanduser()
+from pyappm_constants import BIN_DIR  # type: ignore
+from pyappm_constants import EXE_NAME  # type: ignore
+from pyappm_constants import INSTALL_DIR  # type: ignore
+from pyappm_constants import DL_CACHE  # type: ignore
+from pyappm_constants import CFG_DIR  # type: ignore
+from pyappm_constants import __version__  # type: ignore
+from pyappm_constants import __author__  # type: ignore
+from pyappm_constants import __copyright__  # type: ignore
+from pyappm_constants import __license__  # type: ignore
+from pyappm_constants import MINIMUM_PYTHON_VERSION  # type: ignore
+from pyappm_constants import LINUX_DEPENDENCIES  # type: ignore
+from pyappm_constants import WINDOWS_DEPENDENCIES  # type: ignore
+from pyappm_constants import DOWNLOAD_URL  # type: ignore
+from pyappm_constants import TMP_DIR  # type: ignore
+from pyappm_constants import APP_DIR  # type: ignore
 
 
 def uninstall_pyapp() -> None:

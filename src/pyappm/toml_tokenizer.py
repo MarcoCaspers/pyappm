@@ -37,7 +37,9 @@ from pathlib import Path
 
 
 class TomlToken:
-    def __init__(self, token_type: str, value: str | tuple | list | dict) -> None:
+    def __init__(
+        self, token_type: str, value: str | tuple | list | dict | bool
+    ) -> None:
         self.token_type = token_type
         self.value = value
 

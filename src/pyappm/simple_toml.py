@@ -53,7 +53,7 @@ from io import TextIOWrapper
 from pathlib import Path
 from toml_parser import TomlParser  # type: ignore
 from toml_tokenizer import TomlTokenizer  # type: ignore
-from pyappm_tools import DotDict  # type: ignore
+from dotdict import DotDict  # type: ignore
 
 
 class TomlReader:

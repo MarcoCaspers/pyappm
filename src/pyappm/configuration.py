@@ -34,34 +34,30 @@
 
 
 from __future__ import annotations
-from simple_toml import TomlReader, TomlWriter, DotDict  # type: ignore
+from dotdict import DotDict  # type: ignore
+from simple_toml import TomlReader, TomlWriter  # type: ignore
 from pathlib import Path
 from application import PyAPPMApplication  # type: ignore
 
-# Define the defaults
-INSTALL_DIR = "~/.pyappm"
-BIN_DIR = "~/.local/bin"
-APP_DIR = "~/.pyappm/share/applications"
-APP_BIN_DIR = "~/.pyappm/share/applications/bin"
-TMP_DIR = "/tmp/pyappm"
-CONFIG_DIR = "~/.config/pyappm"
-
-
-DOWNLOAD_URL = "https://pyappm.nl/downloads/pyappm.zip"
-REPOSITORY_URLS = ["https://pyappm.nl/repo"]
-
-CONFIG_FILE_NAME = "pyappmconfig.json"
+from pyappm_constants import INSTALL_DIR  # type: ignore
+from pyappm_constants import BIN_DIR  # type: ignore
+from pyappm_constants import APP_DIR  # type: ignore
+from pyappm_constants import APP_BIN_DIR  # type: ignore
+from pyappm_constants import TMP_DIR  # type: ignore
+from pyappm_constants import CFG_DIR  # type: ignore
+from pyappm_constants import REPOSITORY_URLS  # type: ignore
+from pyappm_constants import CONFIG_FILE_NAME  # type: ignore
 
 
 class PyAPPMConfiguration:
     def __init__(self) -> None:
         # Define the paths
-        self.install_dir: Path = Path(INSTALL_DIR).expanduser()
-        self.config_dir: Path = Path(CONFIG_DIR).expanduser()
-        self.bin_dir: Path = Path(BIN_DIR).expanduser()
-        self.app_bin_dir: Path = Path(APP_BIN_DIR).expanduser()
-        self.app_dir: Path = Path(APP_DIR).expanduser()
-        self.temp_dir: Path = Path(TMP_DIR)
+        self.install_dir: Path = INSTALL_DIR
+        self.config_dir: Path = CFG_DIR
+        self.bin_dir: Path = BIN_DIR
+        self.app_bin_dir: Path = APP_BIN_DIR
+        self.app_dir: Path = APP_DIR
+        self.temp_dir: Path = TMP_DIR
         self.repositories: list[str] = REPOSITORY_URLS
         # ---
         self.applications: list[PyAPPMApplication] = []
@@ -116,9 +112,7 @@ class PyAPPMConfiguration:
         # Load the configuration
         pyappm = config["pyappm"]
         self.temp_dir = Path(pyappm.get("temp_dir", str(self.temp_dir)))
-        self.repositories = pyappm.get(
-            "repositories", ",".join(self.repositories)
-        ).split(",")
+        self.repositories = pyappm.get("repositories", self.repositories)
         self.env_create_tool = pyappm.get("env_create_tool", self.env_create_tool)
         self.env_activate_tool = pyappm.get("env_activate_tool", self.env_activate_tool)
         self.env_deactivate_tool = pyappm.get(

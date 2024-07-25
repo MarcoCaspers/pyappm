@@ -4,7 +4,7 @@
 # Author:    Marco Caspers
 # Email:     marco@0xc007.nl
 # License:   MIT License
-# Date:      2024-06-06
+# Date:      2024-07-25
 #
 # Copyright 2024 Marco Caspers
 #
@@ -29,12 +29,28 @@
 # SPDX-License-Identifier: MIT
 #
 
-__name__ = "pyappm"
-__description__ = "PYthon APlication Package Manager."
-__version__ = "1.0.0.alpha.7"
-__author__ = "Marco Caspers"
-__email__ = "marco@0xc007.nl"
-__copyright__ = "Copyright 2024 Marco Caspers"
-__license__ = "MIT License"
-__license_file__ = "LICENSE.txt"
-__readme_file__ = "README.md"
+
+class DotDict(dict):
+    """A dictionary that supports dot notation access."""
+
+    def __getattr__(self, item):
+        value = self.get(item)
+        if isinstance(value, DotDict):
+            return value
+        if isinstance(value, dict):
+            return DotDict(value)
+        if value is None:
+            self[item] = DotDict()
+            return self[item]
+        return value
+
+    def __setattr__(self, key, value):
+        if key not in self:
+            self[key] = None
+        self[key] = value
+
+    def __delattr__(self, item):
+        del self[item]
+
+    def __repr__(self):
+        return f"DotDict({super().__repr__()})"

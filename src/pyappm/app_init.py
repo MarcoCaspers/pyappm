@@ -39,7 +39,7 @@ from configuration import PyAPPMConfiguration  # type: ignore
 from pyappm_tools import ensure_no_virtual_env  # type: ignore
 from pyappm_tools import APP_TOML  # type: ignore
 from pyappm_tools import create_virtual_env  # type: ignore
-from pyappm_tools import DotDict  # type: ignore
+from dotdict import DotDict  # type: ignore
 from simple_toml import TomlWriter  # type: ignore
 
 

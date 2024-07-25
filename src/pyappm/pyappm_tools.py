@@ -39,15 +39,12 @@ from pathlib import Path
 
 from configuration import PyAPPMConfiguration  # type: ignore
 
-
-ENV_ENVIRON = "VIRTUAL_ENV"
-SHELL_EXE = "/bin/bash"
-APP_TOML = "pyapp.toml"
-
-ERR_VENV_ACTIVE = "ERROR: A virtual environment is active."
-ERR_DEACTIVATE_VENV = "Please deactivate the virtual environment and try again."
-
-MSG_INIT_VENV = "Initializing virtual environment... (this may take a while)"
+from pyappm_constants import APP_TOML  # type: ignore
+from pyappm_constants import ENV_ENVIRON  # type: ignore
+from pyappm_constants import ERR_VENV_ACTIVE  # type: ignore
+from pyappm_constants import ERR_DEACTIVATE_VENV  # type: ignore
+from pyappm_constants import MSG_INIT_VENV  # type: ignore
+from pyappm_constants import SHELL_EXE  # type: ignore
 
 
 def is_virtual_env_active() -> bool:
@@ -104,32 +101,6 @@ def create_virtual_env(
     ]
     for cmd in commands:
         run_command(cmd)
-
-
-class DotDict(dict):
-    """A dictionary that supports dot notation access."""
-
-    def __getattr__(self, item):
-        value = self.get(item)
-        if isinstance(value, DotDict):
-            return value
-        if isinstance(value, dict):
-            return DotDict(value)
-        if value is None:
-            self[item] = DotDict()
-            return self[item]
-        return value
-
-    def __setattr__(self, key, value):
-        if key not in self:
-            self[key] = None
-        self[key] = value
-
-    def __delattr__(self, item):
-        del self[item]
-
-    def __repr__(self):
-        return f"DotDict({super().__repr__()})"
 
 
 def get_installed_packages(path: Path, config: PyAPPMConfiguration) -> list[str]:

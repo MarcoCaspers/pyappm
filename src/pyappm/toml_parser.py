@@ -35,7 +35,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Union
 from toml_tokenizer import TomlToken  # type: ignore
-from pyappm_tools import DotDict  # type: ignore
+from dotdict import DotDict  # type: ignore
 
 
 class TomlParser:
@@ -87,13 +87,15 @@ class TomlParser:
         # print(self._current())
         return TomlToken("STRING", value)
 
-    def _parse_identifier(self) -> TomlToken:
+    def _parse_identifier(self, isvalue: bool = False) -> TomlToken:
         start = self.index
         while self._peek().token_type == "CHAR":
             self._next()
         end = self.index + 1
         value = "".join([str(token.value) for token in self.tokens[start:end]])
         token = TomlToken("IDENTIFIER", value)
+        if isvalue is True and value == "True" or value == "False":
+            token = TomlToken("BOOL", bool(value))
         # print(f"Parse identifier: {token}")
         self._next()  # skip the last character
         return token
@@ -198,6 +200,8 @@ class TomlParser:
                 return self._parse_list()
             return self._parse_section()
         elif token.token_type == "CHAR":
+            if value is True:
+                return self._parse_identifier(True)
             return self._parse_key_value()
         elif token.token_type == "LCURLY":
             return self._parse_dict()
@@ -220,6 +224,8 @@ class TomlParser:
         if value.token_type == "STRING":
             return value.value
         if value.token_type == "IDENTIFIER":
+            return value.value
+        if value.token_type == "BOOL":
             return value.value
         if value.token_type == "LIST":
             if not isinstance(value.value, list):
