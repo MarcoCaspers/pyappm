@@ -45,6 +45,10 @@ from pyappm_constants import ERR_VENV_ACTIVE  # type: ignore
 from pyappm_constants import ERR_DEACTIVATE_VENV  # type: ignore
 from pyappm_constants import MSG_INIT_VENV  # type: ignore
 from pyappm_constants import SHELL_EXE  # type: ignore
+from pyappm_constants import APP_DIR  # type: ignore
+
+from simple_toml import TomlReader, TomlWriter  # type: ignore
+from dotdict import DotDict  # type: ignore
 
 
 def is_virtual_env_active() -> bool:
@@ -164,3 +168,36 @@ def get_arg_value(args: list[str], default: Optional[str] = None) -> Optional[st
     except ValueError:
         return default
     return default
+
+
+def create_apps_list() -> list[str]:
+    """Get the installed applications from the repository."""
+    apps: list[str] = []
+    path_to_check = Path(os.path.expanduser(APP_DIR))
+    if not path_to_check.exists():
+        # create the path if it doesn't exist, you should never get here, but just in case.
+        path_to_check.mkdir(parents=True, exist_ok=True)
+        return apps
+    for app in path_to_check.iterdir():
+        if app.is_dir():
+            apps.append(app.name)
+    return apps
+
+
+def load_toml(path: Path) -> DotDict:
+    """Load the toml file."""
+    with TomlReader(path) as reader:
+        data = reader.read()
+    return data
+
+
+def load_app_toml(name: str) -> DotDict:
+    """Load the toml file for the application."""
+    app_path = Path(APP_DIR, name)
+    return load_toml(Path(app_path, APP_TOML))
+
+
+def save_toml(path: Path, data: DotDict) -> None:
+    """Save the toml file."""
+    with TomlWriter(path) as writer:
+        writer.write(data)

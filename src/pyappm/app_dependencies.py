@@ -39,19 +39,19 @@ from pathlib import Path
 
 from configuration import PyAPPMConfiguration  # type: ignore
 
-from simple_toml import TomlReader, TomlWriter  # type: ignore
 from dotdict import DotDict  # type: ignore
 
 from pyappm_tools import run_command  # type: ignore
 from pyappm_tools import get_installed_packages  # type: ignore
 from pyappm_tools import make_dependancy_cmd  # type: ignore
 from pyappm_tools import get_list_diff  # type: ignore
+from pyappm_tools import load_toml  # type: ignore
+from pyappm_tools import save_toml  # type: ignore
 
 
 def add_dependency(path: Path, dep: str, config: PyAPPMConfiguration) -> None:
     """Add a dependency to the pyapp.toml file and install it in the virtual environment."""
-    with TomlReader(path) as reader:
-        data = reader.read()  # type: ignore
+    data = load_toml(path)
     if "dependencies" not in data["project"]:
         data["project"]["dependencies"] = []
 
@@ -66,15 +66,13 @@ def add_dependency(path: Path, dep: str, config: PyAPPMConfiguration) -> None:
     new_deps = get_list_diff(packages, new_packages, dep)
     pkg = DotDict({"name": dep, "new_packages": new_deps})
     data["project"]["dependencies"].append(pkg)
-    with TomlWriter(path) as writer:
-        writer.write(data)
+    save_toml(path, data)
     print(f"Installed {dep}")
 
 
 def remove_dependency(path: Path, dep: str, config: PyAPPMConfiguration) -> None:
     """Remove a dependency from the pyapp.toml file."""
-    with TomlReader(path) as reader:
-        data = reader.read()  # type: ignore
+    data = load_toml(path)
     if "dependencies" not in data["project"]:
         print("No dependencies found.")
         sys.exit(1)
@@ -96,7 +94,6 @@ def remove_dependency(path: Path, dep: str, config: PyAPPMConfiguration) -> None
     data["project"]["dependencies"] = [
         DotDict(pkg) for pkg in data["project"]["dependencies"] if pkg["name"] != dep
     ]
-    with TomlWriter(path) as writer:
-        writer.write(data)
+    save_toml(path, data)
 
     print(f"Removed {dep}")

@@ -53,16 +53,19 @@ APP_BIN_DIR = Path("~/.pyappm/share/applications/bin").expanduser()
 
 DL_CACHE = Path("~/.cache/pyappm").expanduser()
 TMP_DIR = Path("/tmp/pyappm")
-EXE_NAME = "pyappm"
 CFG_DIR = Path("~/.config/pyappm").expanduser()
 
+EXE_NAME = "pyappm"
+
+APP_LST_NAME = "apps.lst"
+CONFIG_FILE_NAME = "pyappmconfig.toml"
+APP_TOML = "pyapp.toml"
+PYAPP_EXT = ".pap"
+
+SHELL_EXE = "/bin/bash"
+ENV_ENVIRON = "VIRTUAL_ENV"
 REPOSITORY_URLS = ["https://pyappm.nl/repo"]
 
-CONFIG_FILE_NAME = "pyappmconfig.toml"
-
-ENV_ENVIRON = "VIRTUAL_ENV"
-SHELL_EXE = "/bin/bash"
-APP_TOML = "pyapp.toml"
 
 ERR_VENV_ACTIVE = "ERROR: A virtual environment is active."
 ERR_DEACTIVATE_VENV = "Please deactivate the virtual environment and try again."

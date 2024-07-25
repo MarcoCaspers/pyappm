@@ -56,6 +56,8 @@ from app_dependencies import remove_dependency  # type: ignore
 from app_local_dependencies import add_local  # type: ignore
 from app_local_dependencies import remove_local  # type: ignore
 from app_builder import build_app  # type: ignore
+from app_installer import install_app  # type: ignore
+from app_installer import uninstall_app
 
 from pyappm_tools import is_virtual_env_active  # type: ignore
 from pyappm_tools import find_pyapp_toml  # type: ignore
@@ -63,6 +65,10 @@ from pyappm_tools import ensure_no_virtual_env  # type: ignore
 from pyappm_tools import run_command  # type: ignore
 from pyappm_tools import make_dependancy_cmd  # type: ignore
 from pyappm_tools import get_arg_value  # type: ignore
+from pyappm_tools import create_apps_list  # type: ignore
+from pyappm_tools import load_toml  # type: ignore
+
+from pyappm_constants import APP_TOML  # type: ignore
 
 
 def help() -> None:
@@ -152,38 +158,6 @@ def load_config() -> PyAPPMConfiguration:
     return config
 
 
-def load_installed_apps_list() -> list[str]:
-    """Get the installed applications from the repository."""
-    apps: list[str] = []
-    path_to_check = Path(os.path.expanduser(APP_PATH))
-    if not path_to_check.exists():
-        # create the path if it doesn't exist, you should never get here, but just in case.
-        path_to_check.mkdir(parents=True, exist_ok=True)
-        return apps
-    for app in path_to_check.iterdir():
-        if app.is_dir():
-            apps.append(app.name)
-    return apps
-
-
-def save_installed_apps_list(apps: list[str]) -> None:
-    """Save the list of applications to the repository."""
-    with open(Path(os.path.expanduser(APP_PATH), "apps.lst"), "w") as file:
-        file.write("\n".join(apps))
-
-
-def load_repo_app_list(url: str) -> list[str]:
-    """Load the list of applications from the repository."""
-    header = {"Accept": "application/json"}
-    response = get(url=f"{url}/apps/list", headers=header)
-    if response.status_code != 200:
-        print(f"Failed to load the apps list from {url}")
-        print(f"Status code:  {response.status_code}")
-        print(f"Error detail: {response.detail}")
-        return []
-    return response.json().get("apps", [])
-
-
 def validate_version(version: str) -> str:
     """Velidate the version string for use as a url parameter."""
     v: list = []
@@ -226,149 +200,18 @@ def validate_version(version: str) -> str:
     return version
 
 
-def validate_filename(name: str) -> str:
-    """Validate the filename for use as a url node."""
-    safe_name = urllib.parse.quote(name)
-    return safe_name
-
-
-def download_app(url: str, name: str, version: str) -> None:
-    """Download an application from the repository."""
-    header = {"Accept": "application/zip"}
-    response: Response = get(
-        url=f"{url}/apps/{name}",
-        headers=header,
-        params={"version": version},
-    )
-    if response.status_code != 200:
-        print(f"Failed to download {name} from {url}")
-        print(f"Status code:  {response.status_code}")
-        print(f"Error detail: {response.detail}")
-        sys.exit(1)
-    dlpath = Path(os.path.expanduser(APP_PATH), f"{name}.pap")
-    with open(dlpath, "wb") as file:
-        file.write(response.data)
-    run_command(f"unzip {name}.pap -d {Path(os.path.expanduser(APP_PATH), name)}")
-    run_command(f"rm {name}.pap")
-
-
-def install_application(name: str, config: PyAPPMConfiguration) -> None:
-    """Install an application with name."""
-    apps = load_installed_apps_list()
-    print(f"Installing {name}... (this may take a while)")
-    app_path = Path(os.path.expanduser(APP_PATH), name)
-    with TomlReader(Path(app_path, "pyapp.toml")) as reader:
-        data = reader.read()
-
-    create_virtual_env(
-        app_path,
-        config,
-        name=str(data.tools.env_name),
-        ltool=data.tools.env_lib_installer,
-        ctool=data.tools.env_create_tool,
-    )
-    for dep in data["project"]["dependencies"]:
-        run_command(make_dependancy_cmd(app_path, config, "install", dep["name"]))
-    apps.append(name)
-    save_installed_apps_list(apps)
-    print(f"Installed {name}")
-
-
-def install_app(name: str, version: str, config: PyAPPMConfiguration) -> None:
-    """Install an application with name."""
-    if name.endswith(".pap"):
-        install_local(name, config)
-        return
-    ensure_no_virtual_env()
-    apps = load_installed_apps_list()
-    if name in apps:
-        print(f"{name} is already installed for this user.")
-        return
-    for url in config.repositories:
-        print(f"Checking {url}...")
-        apps = load_repo_app_list(url)
-        if name in apps:
-            print(f"Downloading {name}... (this may take a while)")
-            download_app(url, name, version)
-            install_application(name, config)
-            write_executables(name, config)
-            return
-    print(f"{name} not found in any repository.")
-
-
-def install_local(name: str, config: PyAPPMConfiguration) -> None:
-    """Install an application from a local .pap file."""
-    ensure_no_virtual_env()
-    app_name = Path(name).stem.split("-")[0]
-    apps = load_installed_apps_list()
-    if app_name in apps:
-        print(f"{app_name} is already installed for this user.")
-        return
-    app_path = Path(os.path.expanduser(config.app_dir), app_name)
-    run_command(f"unzip -q {name} -d {app_path}")
-    install_application(app_name, config)
-    write_executables(app_name, config)
-
-
 def list_installed_apps(config: PyAPPMConfiguration) -> None:
     """List the installed applications."""
-    apps = config.applications
+    apps = create_apps_list()
     if len(apps) == 0:
         print("No applications installed.")
         return
     print("Installed applications:")
     for app in apps:
-        print(f"  {app.name} v{app.version}")
-
-
-def write_executables(name: str, config: PyAPPMConfiguration) -> None:
-    """Write the executable files."""
-    app_path = Path(os.path.expanduser(config.app_dir), name)
-    toml = TomlReader(Path(app_path, "pyapp.toml")).read()
-    executables = toml.get("executable", {})
-    if len(executables) == 0:
-        return
-    for exe, cmd in executables.items():
-        path = Path(app_path, "env", "bin", exe)
-        module, func = cmd.split(":")
-        with open(path, "w") as file:
-            file.write(
-                f"""#!/bin/bash
-cd {path.parent}
-source activate
-cd ../..
-./{module}_runner $@
-"""
-            )
-        run_command(f"chmod +x {path}")
-        path = Path(app_path, f"{exe}_runner")
-        with open(path, "w") as file:
-            file.write(
-                f"""#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-import sys
-import re
-from {module} import {func}
-
-if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
-    sys.exit({func}())
-"""
-            )
-        run_command(f"chmod +x {path}")
-
-
-def uninstall_app(name: str, config: PyAPPMConfiguration) -> None:
-    """uninstall an application with name."""
-    apps = load_installed_apps_list()
-    if name not in apps:
-        print(f"{name} is not installed for this user.")
-        return
-    print(f"Uninstalling {name}... (this may take a while)")
-    app_path = Path(os.path.expanduser(config.app_dir), name)
-    run_command(f"cd {app_path}; python3 setup.py uninstall")
-    print(f"Uninstalled {name}")
+        app_path = config.app_dir / app
+        app_toml = app_path / APP_TOML
+        app = load_toml(app_toml)
+        print(f"  {app.project.name} v{app.project.version}")
 
 
 def main() -> None:
@@ -386,6 +229,9 @@ def main() -> None:
             version = validate_version(version)
             return install_app(name, version, config)
         return install_app(args.install, "latest", config)
+
+    if args.uninstall is not None:
+        return uninstall_app(args.uninstall, config)
 
     if not is_virtual_env_active():
         print("A virtual environment is not active.")

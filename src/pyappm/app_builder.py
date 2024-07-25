@@ -42,6 +42,8 @@ from configuration import PyAPPMConfiguration  # type: ignore
 from simple_toml import TomlReader  # type: ignore
 from pyappm_tools import run_command  # type: ignore
 
+from pyappm_constants import PYAPP_EXT  # type: ignore
+
 
 def build_app(path: Path, config: PyAPPMConfiguration) -> None:
     """Build the application."""
@@ -107,9 +109,9 @@ def build_app(path: Path, config: PyAPPMConfiguration) -> None:
     commands.append(f"{zip_cmd_parent} README.md")
     commands.append(f"{cmd_list_files} > build/files.lst")
     commands.append(f"{zip_cmd_build} files.lst")
-    commands.append(f"{cmd_move_archive} dist/{path.parent.name}-{version}.pap")
+    commands.append(f"{cmd_move_archive} dist/{path.parent.name}-{version}.{PYAPP_EXT}")
     commands.append(cmd_files_list)
     for command in commands:
         run_command(command)
-    print(f"Built {path.parent.name}-{version}.pap")
+    print(f"Built {path.parent.name}-{version}.{PYAPP_EXT}")
     print("Done!")
