@@ -57,12 +57,13 @@ MINIMUM_PYTHON_VERSION = (3, 10)
 
 DOWNLOAD_URL = "https://pyappm.nl/downloads/pyappm.zip"
 
-INSTALL_DIR = Path("~/.pyappm/bin").expanduser()
+INSTALL_DIR = Path("~/.pyappm").expanduser()
 BIN_DIR = Path("~/.local/bin").expanduser()
 APP_DIR = Path("~/.pyappm/share/applications").expanduser()
 DL_CACHE = Path("~/.cache/pyappm").expanduser()
 TMP_DIR = Path("/tmp/pyappm")
 EXE_NAME = "pyappm"
+CFG_DIR = Path("~/.config/pyappm").expanduser()
 
 
 def uninstall_pyapp() -> None:
@@ -71,6 +72,7 @@ def uninstall_pyapp() -> None:
     (BIN_DIR / EXE_NAME).unlink()
     rm_rf(INSTALL_DIR)
     rm_rf(DL_CACHE)
+    rm_rf(CFG_DIR)
     print("Pyapp uninstallation complete!")
 
 

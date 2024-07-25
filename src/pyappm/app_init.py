@@ -73,12 +73,8 @@ def write_default_pyapp_toml(
     path: Path, app_name: str, config: PyAPPMConfiguration
 ) -> None:
     """Write the default pyapp.toml file to the specified path."""
-    authors = [
-        DotDict(
-            {"author": author, "email": email}
-            for author, email in zip(config.authors, config.emails)
-        )
-    ]
+    print(config.authors)
+    authors = [DotDict(config.authors)]
     print(authors)
     print(config.dependencies)
     toml = DotDict(
