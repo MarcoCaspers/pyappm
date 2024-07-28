@@ -31,7 +31,7 @@
 
 __name__ = "pyappm"
 __description__ = "PYthon APlication Package Manager."
-__version__ = "1.0.0.alpha.19"
+__version__ = "1.0.0.alpha.21"
 __author__ = "Marco Caspers"
 __email__ = "marco@0xc007.nl"
 __copyright__ = "Copyright 2024 Marco Caspers"

@@ -50,16 +50,14 @@ Usage: pyappm [options] [command]
 pyappm init, --init [<name>]                            Initialize a new application project
 pyappm build, --build, -b                               Build the application
 
-pyappm install, --install, -i [<name>||<file.pap>]      Install an application from a repository or a local file
-pyappm uninstall, --uninstall, -u <name>                Uninstall an application
+pyappm install, --install, -i [<name>|<file.pap>]       Install application from a repository or a local file
+pyappm uninstall, --uninstall, -u <name>                Uninstall application
 
 pyappm list, --list, -l                                 List installed applications
 
-pyappm add, --add, -a <name>                             Add a dependency to an application from PyPi
-pyappm add_local, --add_local <file.whl>                 Add a local dependency to an application from a .whl file
+pyappm add, --add, -a <name> | <file.whl>               Add a dependency to the application from PyPi or a .whl file
 
 pyappm remove, --remove, -r <name>                      Remove a dependency from an application
-pyappm remove_local, --remove_local <name>              Remove a local dependency from an application (.whl file)
 
 pyappm help, --help, -h, -?                              Show this help message
 ```  

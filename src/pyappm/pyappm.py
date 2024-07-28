@@ -46,7 +46,6 @@ from configuration import PyAPPMConfiguration  # type: ignore
 
 from pyappm_tools import is_virtual_env_active  # type: ignore
 from pyappm_tools import find_pyapp_toml
-from pyappm_tools import get_arg_value
 from pyappm_tools import create_apps_list
 from pyappm_tools import load_toml
 
@@ -58,10 +57,6 @@ from app_dependencies import add_dependency  # type: ignore
 from app_dependencies import remove_dependency
 from app_dependencies import check_if_dep_installed
 
-from app_local_dependencies import add_local  # type: ignore
-from app_local_dependencies import remove_local
-from app_local_dependencies import check_if_local_dep_installed
-
 from app_builder import build_app  # type: ignore
 
 from app_installer import install_app  # type: ignore
@@ -70,32 +65,30 @@ from app_installer import check_if_installed
 
 
 def help() -> None:
-    print(
-        "Pyappm is a toolset that allows building, installing, maintaining and distributing Python applications."
-    )
-    print()
-    print("Usage:*")
-    print(
-        "  pyappm init [application name]  Initialize the application (default: current directory name)"
-    )
-    print("  pyappm add [dependency]         Add a dependency to the application.")
-    print("  pyappm remove [dependency]      Remove a dependency from the application.")
+    """Print the help message."""
     print()
     print(
-        "  pyappm install [application]    Install the application from the repository, optionally provide the version number with ==<version.number>."
+        "Python Application Manager (pyappm) is a tool to manage Python applications and their dependencies."
     )
-    print("  pyappm uninstall [application]  Uninstall the application.")
     print()
-    print("  pyappm build                       Build the application.")
+    print("Usage:")
+    print("  pyappm [command] [arguments]")
+    print()
+    print("  pyappm init [application name]     Initialize the application")
+    print()
+    print("  pyappm build                       Build the application")
+    print()
+    print("  pyappm add [dependency]            Add a dependency")
+    print("  pyappm remove [dependency]         Remove a dependency")
+    print()
+    print("  pyappm install [application]       Install an application")
+    print("  pyappm uninstall [application]     Uninstall an application")
     print()
     print("  pyappm list                        List the installed applications.")
     print()
-    print("  pyappm version, --version, -v      Show the version and exit.")
-    print("  pyappm help, --help, -h, -?        Show this message and exit.")
+    print("  pyappm version                     Show the version number")
+    print("  pyappm help                        Show this message")
     print()
-    print(
-        "* The commands also have versions with -- in front, e.g. `pyappm init` can be written as `pyappm --init`."
-    )
     print()
     print("For more information, see the README.md file.")
 
@@ -115,80 +108,94 @@ class PaAppArgs:
 
 
 def validate_args() -> None:
-    for arg in sys.argv[1:]:
-        if arg not in [
-            "help",
-            "--help",
-            "-h",
-            "-?",
-            "version",
-            "--version",
-            "-v",
-            "init",
-            "--init",
-            "add",
-            "--add",
-            "-a",
-            "add_local",
-            "--add_local",
-            "remove",
-            "--remove",
-            "-r",
-            "remove_local",
-            "--remove_local",
-            "install",
-            "--install",
-            "-i",
-            "uninstall",
-            "--uninstall",
-            "-u",
-            "build",
-            "--build",
-            "-b",
-            "list",
-            "--list",
-            "-l",
-            "deps",
-            "--deps",
-            "-d",
-        ]:
-            print(f"Invalid argument: {arg}")
-            help()
-            sys.exit(1)
+    """Validate the command line arguments."""
+    if sys.argv[1] not in [
+        "help",
+        "--help",
+        "-h",
+        "-?",
+        "version",
+        "--version",
+        "-v",
+        "init",
+        "--init",
+        "add",
+        "--add",
+        "-a",
+        "add_local",
+        "--add_local",
+        "remove",
+        "--remove",
+        "-r",
+        "remove_local",
+        "--remove_local",
+        "install",
+        "--install",
+        "-i",
+        "uninstall",
+        "--uninstall",
+        "-u",
+        "build",
+        "--build",
+        "-b",
+        "list",
+        "--list",
+        "-l",
+        "deps",
+        "--deps",
+        "-d",
+    ]:
+        print(f"Invalid command: {sys.argv[1]}")
+        help()
+        sys.exit(1)
+
+
+def arg_or_default(arg: str | None, default: str | None) -> str | None:
+    """Return the argument or the default value."""
+    if arg is None:
+        return default
+    return arg
 
 
 def parse_args() -> PaAppArgs:
     """Parse the command line arguments."""
     validate_args()
     res = PaAppArgs(None, None, None, None, None, None, None, False, False, False)
-    if "version" in sys.argv or "--version" in sys.argv or "-v" in sys.argv:
+    cmd = sys.argv[1]
+    arg = None
+    if len(sys.argv) >= 3:
+        arg = sys.argv[2]
+    if cmd in ["version", "--version", "-v"]:
         print()
         print(f"Python Application Manager version: {__version__}")
         print()
         sys.exit(0)
-    if (
-        "help" in sys.argv
-        or "--help" in sys.argv
-        or "-h" in sys.argv
-        or "-?" in sys.argv
-    ):
+    if (cmd in ["help", "--help", "-h", "-?"]) or (len(sys.argv) == 1):
         help()
         sys.exit(0)
 
-    if "init" in sys.argv or "--init" in sys.argv:
-        res.init = get_arg_value(["init", "--init"], ".")
+    if cmd in ["init", "--init"]:
+        res.init = arg_or_default(arg, ".")
     if "add" in sys.argv or "--add" in sys.argv or "-a" in sys.argv:
-        res.add = get_arg_value(["add", "--add", "-a"])
-    if "add_local" in sys.argv or "--add_local" in sys.argv:
-        res.add_local = get_arg_value(["add_local", "--add_local"])
+        if arg is None:  # pragma: no cover
+            print("No dependency specified.")
+            sys.exit(1)
+        res.add = arg
     if "remove" in sys.argv or "--remove" in sys.argv or "-r" in sys.argv:
-        res.remove = get_arg_value(["remove", "--remove", "-r"])
-    if "remove_local" in sys.argv or "--remove_local" in sys.argv:
-        res.remove_local = get_arg_value(["remove_local", "--remove_local"])
+        if arg is None:
+            print("No dependency specified.")
+            sys.exit(1)
+        res.remove = arg
     if "install" in sys.argv or "--install" in sys.argv or "-i" in sys.argv:
-        res.install = get_arg_value(["install", "--install", "-i"])
+        if arg is None:
+            print("No application specified.")
+            sys.exit(1)
+        res.install = arg
     if "uninstall" in sys.argv or "--uninstall" in sys.argv or "-u" in sys.argv:
-        res.uninstall = get_arg_value(["uninstall", "--uninstall", "-u"])
+        if arg is None:
+            print("No application specified.")
+            sys.exit(1)
+        res.uninstall = arg
     if "build" in sys.argv or "--build" in sys.argv or "-b" in sys.argv:
         res.build = True
     if "list" in sys.argv or "--list" in sys.argv or "-l" in sys.argv:
@@ -333,21 +340,6 @@ def main() -> None:
             print(f"{args.remove} is not installed.")
             sys.exit(1)
         return remove_dependency(toml_path, args.remove, config)
-
-    # if args.add_local is not None:
-    #    if not validate_local(args.add_local):
-    #        print(f"Invalid file: {args.add_local}, only .whl files are supported.")
-    #        sys.exit(1)
-    #    if check_if_local_dep_installed(toml_path, args.add_local):
-    #        print(f"{args.add_local} is already installed.")
-    #        sys.exit(1)
-    #    return add_local(toml_path, args.add_local, config)
-    #
-    # if args.remove_local is not None:
-    #    if not check_if_local_dep_installed(toml_path, args.remove_local):
-    #        print(f"{args.remove_local} is not installed.")
-    #        sys.exit(1)
-    #    return remove_local(toml_path, args.remove_local, config)
 
     if args.list is True:
         return list_installed_apps(config)

@@ -102,7 +102,6 @@ def write_default_pyapp_toml(
                     "requires_python": config.requires_python,
                     "type": "application",
                     "dependencies": config.dependencies,
-                    "local_dependencies": [],
                 }
             ),
             "executable": DotDict({app_name: f"{app_name}:run"}),

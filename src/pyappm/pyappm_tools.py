@@ -126,7 +126,10 @@ def get_installed_packages(path: Path, config: PyAPPMConfiguration) -> list[str]
         executable="/bin/bash",
     ).decode("utf-8")
     lst = output.split("\n")
-    return [pkg.split("==")[0] for pkg in lst]
+    plst = [pkg.split("==")[0] for pkg in lst]  # remove the version number
+    return [
+        plst.split(" @ ")[0] for plst in plst if len(plst) > 0
+    ]  # remove the bits for a file install.
 
 
 def make_dependancy_cmd(
@@ -151,29 +154,6 @@ def get_list_diff(
     }
     """
     return [pkg for pkg in new_packages if pkg not in old_packages and pkg != dep]
-
-
-def get_arg_value(args: list[str], default: Optional[str] = None) -> Optional[str]:
-    """Get the offset of the argument in the list."""
-    try:
-        # for index, arg in enumerate(sys.argv):
-        #    print(index, arg)
-        argcount = len(sys.argv)
-        # print("ArgCount: ", argcount)
-        for arg in args:
-            if not arg in sys.argv:
-                continue
-            # +1 for the arg itself and +1 for the value
-            value_index = args.index(arg) + 2
-            # print("Index: ", index)
-            # print(sys.argv[index])
-            if value_index >= argcount:  # if the index is out of bounds
-                return default
-            return sys.argv[value_index]
-
-    except ValueError:
-        return default
-    return default
 
 
 def create_apps_list() -> list[str]:

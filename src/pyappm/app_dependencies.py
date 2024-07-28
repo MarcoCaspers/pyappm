@@ -50,20 +50,14 @@ from pyappm_tools import load_toml
 from pyappm_tools import save_toml
 
 
-def is_local_dep(dep: str) -> bool:
-    """Check if a dependency is a local dependency."""
-    dep_path = Path(dep)
-    return dep_path.is_file()
-
-
 def check_if_dep_installed(toml_path: Path, dep: str) -> bool:
     """Check if a dependency is installed."""
     toml = load_toml(toml_path)
     if "dependencies" not in toml["project"]:
         return False
     return any(
-        pkg["name"] == dep or pkg["name"] == f"{dep}.whl"
-        for pkg in toml.project.dependencies
+        pkg["name"] == dep or (".whl" in pkg["name"] and dep in pkg["name"])
+        for pkg in toml["project"]["dependencies"]
     )
 
 
@@ -83,11 +77,12 @@ def add_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> No
         if dep_path.parent != deps_file_path:
             # only copy the file if it's not already in the deps directory
             run_command(f"cp {dep_path} {deps_file_path}")
-        dep_cmd = dep_path.name
-    run_command(make_dependancy_cmd(pkg_path, config, "install", dep_cmd))
+        dep_cmd = str(Path(deps_file_path, dep_path.name))
+    cmd = make_dependancy_cmd(pkg_path, config, "install", dep_cmd)
+    run_command(cmd)
     new_packages = get_installed_packages(pkg_path, config)
-    if (".whl" in dep and not Path(dep).stem in new_packages) or (
-        ".whl" not in dep and not dep in new_packages
+    if (".whl" not in dep and not dep in new_packages) or len(new_packages) == len(
+        packages
     ):
         print(f"Failed to install {dep}")
         return
@@ -98,7 +93,7 @@ def add_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> No
     if ".whl" in dep:
         pkg_name = f"{pkg_name}.whl"
     pkg = DotDict({"name": pkg_name, "new_packages": new_deps})
-    toml.project.dependencies.append(pkg)
+    toml["project"]["dependencies"].append(pkg)
     save_toml(toml_path, toml)
     print(f"Installed {dep}")
 
@@ -108,8 +103,8 @@ def remove_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) ->
     toml = load_toml(toml_path)
     found = next(
         pkg
-        for pkg in toml.project.dependencies
-        if pkg["name"] == dep or pkg["name"] == f"{dep}.whl"
+        for pkg in toml["project"]["dependencies"]
+        if pkg["name"] == dep or (".whl" in pkg["name"] and dep in pkg["name"])
     )
     print("Removing dependency... (this may take a while)")
     pkg_path = toml_path.parent
@@ -120,7 +115,7 @@ def remove_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) ->
     toml["project"]["dependencies"] = [
         DotDict(pkg)
         for pkg in toml["project"]["dependencies"]
-        if pkg["name"] != dep and pkg["name"] != f"{dep}.whl"
+        if pkg["name"] != dep and not (".whl" in pkg["name"] and dep in pkg["name"])
     ]
     save_toml(toml_path, toml)
     if ".whl" in dep:

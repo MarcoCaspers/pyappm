@@ -1,0 +1,22 @@
+[tools]
+env_create_tool="python3 -m venv"
+env_activate_tool="source bin/activate"
+env_deactivate_tool="deactivate"
+env_name="env"
+env_lib_installer="python3 -m pip"
+
+[project]
+name="demo"
+version="0.1.0"
+readme="README.md"
+license="LICENSE.txt"
+description=""
+authors=[]
+requires_python=">=3.10"
+type="application"
+dependencies=[{name="RestApiClientCore-1.1.5-py3-none-any.whl", new_packages=["RestApiClientCore"]}]
+local_dependencies=[]
+
+[executable]
+demo="demo:run"
+
