@@ -82,7 +82,7 @@ def add_local(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> None:
     packages = get_installed_packages(app_path, config)
     run_command(
         make_dependancy_cmd(
-            app_path.parent, config, "install", str(Path(deps_file_path, dep_path.name))
+            app_path, config, "install", str(Path(deps_file_path, dep_path.name))
         )
     )
     new_packages = get_installed_packages(app_path, config)

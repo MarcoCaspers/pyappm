@@ -115,7 +115,7 @@ class PaAppArgs:
 
 
 def validate_args() -> None:
-    for arg in sys.argv:
+    for arg in sys.argv[1:]:
         if arg not in [
             "help",
             "--help",
@@ -162,8 +162,9 @@ def parse_args() -> PaAppArgs:
     validate_args()
     res = PaAppArgs(None, None, None, None, None, None, None, False, False, False)
     if "version" in sys.argv or "--version" in sys.argv or "-v" in sys.argv:
-        # Version is always printed, so no need to show it a second time.
-        # print(f"Pyapp version: {__version__}")
+        print()
+        print(f"Python Application Manager version: {__version__}")
+        print()
         sys.exit(0)
     if (
         "help" in sys.argv
@@ -278,8 +279,6 @@ def validate_local(dep: str) -> bool:
 
 
 def main() -> None:
-    print(f"Pyapp version: {__version__}")
-    print()
     config: PyAPPMConfiguration = load_config()
 
     args: PaAppArgs = parse_args()
@@ -321,6 +320,9 @@ def main() -> None:
         return build_app(toml_path, config)
 
     if args.add is not None:
+        if Path(args.add).is_file() and not validate_local(args.add):
+            print(f"Invalid dependency: {args.add}")
+            sys.exit(1)
         if check_if_dep_installed(toml_path, args.add):
             print(f"{args.add} is already installed.")
             sys.exit(1)
@@ -332,20 +334,20 @@ def main() -> None:
             sys.exit(1)
         return remove_dependency(toml_path, args.remove, config)
 
-    if args.add_local is not None:
-        if not validate_local(args.add_local):
-            print(f"Invalid file: {args.add_local}, only .whl files are supported.")
-            sys.exit(1)
-        if check_if_local_dep_installed(toml_path, args.add_local):
-            print(f"{args.add_local} is already installed.")
-            sys.exit(1)
-        return add_local(toml_path, args.add_local, config)
-
-    if args.remove_local is not None:
-        if not check_if_local_dep_installed(toml_path, args.remove_local):
-            print(f"{args.remove_local} is not installed.")
-            sys.exit(1)
-        return remove_local(toml_path, args.remove_local, config)
+    # if args.add_local is not None:
+    #    if not validate_local(args.add_local):
+    #        print(f"Invalid file: {args.add_local}, only .whl files are supported.")
+    #        sys.exit(1)
+    #    if check_if_local_dep_installed(toml_path, args.add_local):
+    #        print(f"{args.add_local} is already installed.")
+    #        sys.exit(1)
+    #    return add_local(toml_path, args.add_local, config)
+    #
+    # if args.remove_local is not None:
+    #    if not check_if_local_dep_installed(toml_path, args.remove_local):
+    #        print(f"{args.remove_local} is not installed.")
+    #        sys.exit(1)
+    #    return remove_local(toml_path, args.remove_local, config)
 
     if args.list is True:
         return list_installed_apps(config)
