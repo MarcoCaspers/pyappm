@@ -2,6 +2,7 @@ clean:
 	@echo "Cleaning the project..."
 	@rm -rf dist > /dev/null 2>&1
 	@echo "Clean completed successfully."
+	
 build:
 	@echo "Building the project..."
 	@rm -rf dist > /dev/null 2>&1

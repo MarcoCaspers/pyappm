@@ -143,7 +143,13 @@ def make_dependancy_cmd(
 def get_list_diff(
     old_packages: list[str], new_packages: list[str], dep: str
 ) -> list[str]:
-    """Get the new packages that were installed."""
+    """Get the adittional packages that were installed.,
+    The structure of a package in the toml file is as follows:
+    {
+        "name": str (the name of the package),
+        "new_packages": list[str] (the additional packages that were installed)
+    }
+    """
     return [pkg for pkg in new_packages if pkg not in old_packages and pkg != dep]
 
 

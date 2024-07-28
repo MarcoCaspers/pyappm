@@ -8,3 +8,5 @@ snippets.txt
 .env
 install
 upload
+*.code-workspace
+.mypy_cache

@@ -1,3 +1,5 @@
+** This is old and needs to be updated, the name of the project was changed to pyappm because pyapp already exists. **
+
 # Pyapp
 
 Pyapp is the Python application management system.

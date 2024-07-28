@@ -31,21 +31,14 @@
 
 # Description:
 #
-# This will build the Pyappm application.
+# This module provides the functions for the pyappm to build the application.
 #
-
-import sys
-from pathlib import Path
-
-from pyappm_constants import PYAPP_EXT  # type: ignore
-
-from configuration import PyAPPMConfiguration  # type: ignore
-
-from pyappm_tools import run_command  # type: ignore
-from pyappm_tools import load_toml  # type: ignore
-
-from dotdict import DotDict  # type: ignore
-
+# usage: pyappm build
+#
+# For this the virtual environment of the application needs to be active.
+# The build command creates a zip archive of the application source code and local dependencies using the pyapp.toml file.
+# The zip archive is created in the build directory of the application and then moved to <app_name>-<version>.pap in the dist directory once finished.
+#
 # Example pyapp.toml file:
 #
 # [tools]
@@ -59,7 +52,7 @@ from dotdict import DotDict  # type: ignore
 # readme = "README.md"
 # license = "LICENSE.txt"
 # description = ""
-# authors = [{ name="Marco Caspers", email="SamaDevTeam@Westcon.com" }]
+# authors = [{ name="Marco Caspers", email="marco@0xc007.nl" }]
 # requires_python = ">=3.9"
 # dependencies = []
 # local_dependencies = []
@@ -70,6 +63,18 @@ from dotdict import DotDict  # type: ignore
 # [includes]
 # files = ["py.typed", ...]
 # directories = [...]
+
+import sys
+from pathlib import Path
+
+from pyappm_constants import PYAPP_EXT  # type: ignore
+
+from configuration import PyAPPMConfiguration  # type: ignore
+
+from pyappm_tools import run_command  # type: ignore
+from pyappm_tools import load_toml  # type: ignore
+
+from dotdict import DotDict  # type: ignore
 
 
 def build_app(toml_path: Path, config: PyAPPMConfiguration) -> None:

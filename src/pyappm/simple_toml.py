@@ -30,15 +30,15 @@
 #
 
 # Simple toml is a small simple utility that parses toml files and returns a dictionary
-# The goal is to not being dependant on 3rd party libraries so pyapp can run without
+# The goal is to not being dependant on 3rd party libraries so pyappm can run without
 # a vritual environment of its own.
-
+#
 # TomlReader Usage example:
 # path = Path("path/to/your.toml")
 # with TomlReader(path) as reader:
 #     reader.read()
 #     print(reader.tools.tool1.option)
-
+#
 # TomlWriter Usage example:
 # path = Path("path/to/your.toml")
 # with TomlWriter(path) as writer:

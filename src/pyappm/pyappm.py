@@ -71,29 +71,33 @@ from app_installer import check_if_installed
 
 def help() -> None:
     print(
-        "Pyapp is a toolset that allows building, installing, maintaining and distributing Python applications."
+        "Pyappm is a toolset that allows building, installing, maintaining and distributing Python applications."
     )
     print()
-    print("Usage:")
+    print("Usage:*")
     print(
-        "  pyapp init [application name]  Initialize the application (default: current directory name)"
+        "  pyappm init [application name]  Initialize the application (default: current directory name)"
     )
-    print("  pyapp add [dependency]         Add a dependency to the application.")
-    print("  pyapp remove [dependency]      Remove a dependency from the application.")
+    print("  pyappm add [dependency]         Add a dependency to the application.")
+    print("  pyappm remove [dependency]      Remove a dependency from the application.")
     print()
     print(
-        "  pyapp install [application]    Install the application from the repository, optionally provide the version number with ==<version.number>."
+        "  pyappm install [application]    Install the application from the repository, optionally provide the version number with ==<version.number>."
     )
-    print("  pyapp uninstall [application]  Uninstall the application.")
+    print("  pyappm uninstall [application]  Uninstall the application.")
     print()
-    print("  pyapp build                    Build the application.")
+    print("  pyappm build                       Build the application.")
+    print()
+    print("  pyappm list                        List the installed applications.")
+    print()
+    print("  pyappm version, --version, -v      Show the version and exit.")
+    print("  pyappm help, --help, -h, -?        Show this message and exit.")
+    print()
     print(
-        "  pyapp deploy                   Deploy the application to the repository (build required)."
+        "* The commands also have versions with -- in front, e.g. `pyappm init` can be written as `pyappm --init`."
     )
     print()
-    print("  pyapp version                  Show the version and exit.")
-    print("  pyapp help                     Show this message and exit.")
-    print()
+    print("For more information, see the README.md file.")
 
 
 @dataclass
@@ -261,6 +265,18 @@ def list_installed_apps(config: PyAPPMConfiguration) -> None:
         print(f"  {app.project.name} v{app.project.version}")
 
 
+def validate_local(dep: str) -> bool:
+    """Validate the local dependency file."""
+    dep_path = Path(dep)
+    if not Path(dep).exists():
+        return False
+    if not dep_path.is_file():
+        return False
+    if dep_path.suffix != ".whl":
+        return False
+    return True
+
+
 def main() -> None:
     print(f"Pyapp version: {__version__}")
     print()
@@ -317,6 +333,9 @@ def main() -> None:
         return remove_dependency(toml_path, args.remove, config)
 
     if args.add_local is not None:
+        if not validate_local(args.add_local):
+            print(f"Invalid file: {args.add_local}, only .whl files are supported.")
+            sys.exit(1)
         if check_if_local_dep_installed(toml_path, args.add_local):
             print(f"{args.add_local} is already installed.")
             sys.exit(1)

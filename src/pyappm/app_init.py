@@ -29,7 +29,14 @@
 # SPDX-License-Identifier: MIT
 #
 
-# This module contains the pyappm application initialization code.
+# This module provides the functions for the pyappm init command to initialize a new application.
+#
+# usage: pyappm init
+# usage: pyappm init <app_name>
+#
+# The init command initializes a new application in the current directory or in the specified directory.
+# The command creates the directory structure for the application, including the source directory, tests directory,
+# docs directory, dist directory, deps directory, and build directory.
 
 import os
 from pathlib import Path

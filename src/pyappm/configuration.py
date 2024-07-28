@@ -30,7 +30,7 @@
 # SPDX-License-Identifier: MIT
 #
 
-# This is the configuration object for the Pyappm application.
+# This is the configuration object for the pyappm application itself.
 
 
 from __future__ import annotations

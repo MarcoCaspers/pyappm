@@ -35,6 +35,7 @@
 # It provides a simple API to make HTTP requests using GET and POST methods.
 # The Response class is used to store the response data, including the status code and response text.
 # The get() and post() functions are used to make GET and POST requests, respectively.
+#
 
 from typing import Any
 import urllib.parse

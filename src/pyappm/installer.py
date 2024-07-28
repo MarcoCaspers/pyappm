@@ -31,7 +31,7 @@
 #
 
 
-# This is the installer script for the Pyapp application.
+# This is the installer script for the pyappm application
 
 # I love MyPy.
 # I HATE MyPy.

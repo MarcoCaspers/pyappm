@@ -1,7 +1,4 @@
-import sys
 from pathlib import Path
-
-sys.path.append("/proj/python/pyapp/src/")
 
 from pyapp.simple_toml import TomlReader, TomlWriter, DotDict  # type: ignore
 

@@ -29,6 +29,12 @@
 # SPDX-License-Identifier: MIT
 #
 
+#
+# The DotDict class is a dictionary that supports dot notation access.
+#
+
+# I might remove it to reduce complexity if it turns out to be too buggy.
+
 
 class DotDict(dict):
     """A dictionary that supports dot notation access."""

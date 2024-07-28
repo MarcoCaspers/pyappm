@@ -31,7 +31,8 @@
 
 # Description:
 #
-# This will add or remove a local dependency to the Pyappm application.
+# This will add or remove a local dependency to the pyappm managed application.
+# Local dependencies are dependencies that are not available on PyPI, but are available locally on the system as a .whl file.
 #
 
 import sys

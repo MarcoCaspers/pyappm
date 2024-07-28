@@ -30,6 +30,8 @@
 # SPDX-License-Identifier: MIT
 #
 
+"""Pyappm - Python Application Manager"""
+
 import sys
 import re
 from pyappm import main  # type: ignore

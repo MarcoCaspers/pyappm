@@ -31,10 +31,19 @@
 #
 
 #
-# Installer for a Python application
+# This module provides the functions for the pyappm app installer to install and uninstall applications.
+#
+# usage: pyappm install <app_name>
+# usage: pyappm install <file_name.pap>
+#
+# usage: pyappm uninstall <app_name>
+#
+# The install command installs an application from a repository or a local file.
+# The uninstall command uninstalls an application.
+#
+# A virtual environment must _not_ be active.
 #
 
-import os
 import sys
 import urllib.parse
 from pathlib import Path

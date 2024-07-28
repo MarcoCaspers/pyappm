@@ -7,4 +7,3 @@ tool2={option="value"}
 authors=[{name="John Doe", email="j.doe@example.com"}]
 pythonrequired=">=3.8"
 lst=[]
-

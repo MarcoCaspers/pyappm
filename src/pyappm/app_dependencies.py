@@ -31,7 +31,8 @@
 
 # Description:
 #
-# This will add or remove a dependency to the Pyappm application.
+# This will add or remove a dependency to a pyappm managed application
+# These dependencies are installed in the virtual environment of the application using the standard pip install command
 #
 
 import sys

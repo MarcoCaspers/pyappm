@@ -30,7 +30,7 @@
 # SPDX-License-Identifier: MIT
 #
 
-# This is the application object for a Pyappm managed application
+# This is the application object for a pyappm managed application
 
 
 class PyAPPMApplication:

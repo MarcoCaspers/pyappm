@@ -30,7 +30,7 @@
 # SPDX-License-Identifier: MIT
 #
 
-# All the global constants
+# Global constants for pyappm and the installer.
 
 from pathlib import Path
 
@@ -42,29 +42,45 @@ from __about__ import __license__  # type: ignore
 # Define the Linux/Windows dependencies
 LINUX_DEPENDENCIES = ["wget", "unzip"]
 WINDOWS_DEPENDENCIES = ["wget.exe", "unzip.exe"]
+
+# Define the minimum Python version
 MINIMUM_PYTHON_VERSION = (3, 10)
 
+# Define the download URL of the pyappm application for the installer to download
 DOWNLOAD_URL = "https://pyappm.nl/downloads/pyappm.zip"
 
+# Define the path to the pyappm temporary directory for the installer
+TMP_DIR = Path("/tmp/pyappm")
+
+# Define the path to the pyappm application
 INSTALL_DIR = Path("~/.pyappm").expanduser()
+
+# Define the path to the pyappm executable
 BIN_DIR = Path("~/.local/bin").expanduser()
+
+# Define the path to the pyappm applications directory
 APP_DIR = Path("~/.pyappm/share/applications").expanduser()
 
+# Define the path to the pyappm download cache directory
 DL_CACHE = Path("~/.cache/pyappm").expanduser()
-TMP_DIR = Path("/tmp/pyappm")
+
+# Define the path to the pyappm configuration directory
 CFG_DIR = Path("~/.config/pyappm").expanduser()
 
+# Define the filename of the pyappm configuration file
+CONFIG_FILE_NAME = "pyappmconfig.toml"
+
+# Define the executable name for the pyappm application
 EXE_NAME = "pyappm"
 
-APP_LST_NAME = "apps.lst"
-CONFIG_FILE_NAME = "pyappmconfig.toml"
+# Define the .toml filename for applications
 APP_TOML = "pyapp.toml"
-PYAPP_EXT = ".pap"
 
 SHELL_EXE = "/bin/bash"
 ENV_ENVIRON = "VIRTUAL_ENV"
-REPOSITORY_URLS = ["https://pyappm.nl/repo"]
 
+REPOSITORY_URLS = ["https://pyappm.nl/repo"]
+PYAPP_EXT = ".pap"
 
 ERR_VENV_ACTIVE = "ERROR: A virtual environment is active."
 ERR_DEACTIVATE_VENV = "Please deactivate the virtual environment and try again."
