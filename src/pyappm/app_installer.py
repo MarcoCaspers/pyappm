@@ -150,16 +150,19 @@ if __name__ == '__main__':
         run_command(f"chmod +x {path}")
 
 
+def check_if_installed(name: str) -> bool:
+    """Check if the application is installed."""
+    if PYAPP_EXT in name:
+        name = Path(name).resolve().name.replace(PYAPP_EXT, "")
+    return name in create_apps_list()
+
+
 def install_app(name: str, version: str, config: PyAPPMConfiguration) -> None:
-    installed_apps = create_apps_list()
     local = False
     if PYAPP_EXT in name:
         source_path = Path(name).resolve()
         name = source_path.name.replace(PYAPP_EXT, "")
         local = True
-    if name in installed_apps:
-        print(f"{name} is already installed.")
-        return
     if local is False:
         source_path = Path(DL_CACHE, f"{name}{PYAPP_EXT}")
         get_from_repo_or_cache(name, version, config)
@@ -191,10 +194,6 @@ def install_app(name: str, version: str, config: PyAPPMConfiguration) -> None:
 
 
 def uninstall_app(name: str, config: PyAPPMConfiguration) -> None:
-    installed_apps = create_apps_list()
-    if name not in installed_apps:
-        print(f"{name} is not installed.")
-        return
     app_path = Path(config.app_dir, name)
     print(f"Uninstalling {name}... (this may take a while)")
     run_command(f"rm -rf {app_path}")  # remove the application

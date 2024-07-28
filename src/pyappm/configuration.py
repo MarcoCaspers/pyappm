@@ -42,7 +42,6 @@ from application import PyAPPMApplication  # type: ignore
 from pyappm_constants import INSTALL_DIR  # type: ignore
 from pyappm_constants import BIN_DIR  # type: ignore
 from pyappm_constants import APP_DIR  # type: ignore
-from pyappm_constants import APP_BIN_DIR  # type: ignore
 from pyappm_constants import TMP_DIR  # type: ignore
 from pyappm_constants import CFG_DIR  # type: ignore
 from pyappm_constants import REPOSITORY_URLS  # type: ignore
@@ -55,7 +54,6 @@ class PyAPPMConfiguration:
         self.install_dir: Path = INSTALL_DIR
         self.config_dir: Path = CFG_DIR
         self.bin_dir: Path = BIN_DIR
-        self.app_bin_dir: Path = APP_BIN_DIR
         self.app_dir: Path = APP_DIR
         self.temp_dir: Path = TMP_DIR
         self.repositories: list[str] = REPOSITORY_URLS
@@ -90,8 +88,6 @@ class PyAPPMConfiguration:
             default.config_dir.mkdir(parents=True)
         if not default.bin_dir.exists():
             default.bin_dir.mkdir(parents=True)
-        if not default.app_bin_dir.exists():
-            default.app_bin_dir.mkdir(parents=True)
         if not default.app_dir.exists():
             default.app_dir.mkdir(parents=True)
         return default

@@ -49,7 +49,6 @@ DOWNLOAD_URL = "https://pyappm.nl/downloads/pyappm.zip"
 INSTALL_DIR = Path("~/.pyappm").expanduser()
 BIN_DIR = Path("~/.local/bin").expanduser()
 APP_DIR = Path("~/.pyappm/share/applications").expanduser()
-APP_BIN_DIR = Path("~/.pyappm/share/applications/bin").expanduser()
 
 DL_CACHE = Path("~/.cache/pyappm").expanduser()
 TMP_DIR = Path("/tmp/pyappm")

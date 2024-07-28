@@ -34,41 +34,39 @@
 # This is the main entry point for the myapp tool.
 
 from dataclasses import dataclass
-import os
-import urllib.parse
 from pathlib import Path
-import subprocess
 import sys
 from typing import Optional
 
-from simple_toml import TomlReader, TomlWriter  # type: ignore
-from simple_requests import get, post, Response  # type: ignore
-
-# It works fine this way, but mypy can't deal with it, and the solution suggested by copilot (.<module name>) will result in: ImportError: attempted relative import with no known parent package
 from __about__ import __version__  # type: ignore
+
+from pyappm_constants import APP_TOML  # type: ignore
 
 from configuration import PyAPPMConfiguration  # type: ignore
 
+from pyappm_tools import is_virtual_env_active  # type: ignore
+from pyappm_tools import find_pyapp_toml
+from pyappm_tools import get_arg_value
+from pyappm_tools import create_apps_list
+from pyappm_tools import load_toml
+
 # Command implementations
 from app_init import init_pyapp  # type: ignore
+from app_init import check_if_initialized
+
 from app_dependencies import add_dependency  # type: ignore
-from app_dependencies import remove_dependency  # type: ignore
+from app_dependencies import remove_dependency
+from app_dependencies import check_if_dep_installed
+
 from app_local_dependencies import add_local  # type: ignore
-from app_local_dependencies import remove_local  # type: ignore
+from app_local_dependencies import remove_local
+from app_local_dependencies import check_if_local_dep_installed
+
 from app_builder import build_app  # type: ignore
+
 from app_installer import install_app  # type: ignore
 from app_installer import uninstall_app
-
-from pyappm_tools import is_virtual_env_active  # type: ignore
-from pyappm_tools import find_pyapp_toml  # type: ignore
-from pyappm_tools import ensure_no_virtual_env  # type: ignore
-from pyappm_tools import run_command  # type: ignore
-from pyappm_tools import make_dependancy_cmd  # type: ignore
-from pyappm_tools import get_arg_value  # type: ignore
-from pyappm_tools import create_apps_list  # type: ignore
-from pyappm_tools import load_toml  # type: ignore
-
-from pyappm_constants import APP_TOML  # type: ignore
+from app_installer import check_if_installed
 
 
 def help() -> None:
@@ -112,14 +110,63 @@ class PaAppArgs:
     list_deps: bool = False
 
 
+def validate_args() -> None:
+    for arg in sys.argv:
+        if arg not in [
+            "help",
+            "--help",
+            "-h",
+            "-?",
+            "version",
+            "--version",
+            "-v",
+            "init",
+            "--init",
+            "add",
+            "--add",
+            "-a",
+            "add_local",
+            "--add_local",
+            "remove",
+            "--remove",
+            "-r",
+            "remove_local",
+            "--remove_local",
+            "install",
+            "--install",
+            "-i",
+            "uninstall",
+            "--uninstall",
+            "-u",
+            "build",
+            "--build",
+            "-b",
+            "list",
+            "--list",
+            "-l",
+            "deps",
+            "--deps",
+            "-d",
+        ]:
+            print(f"Invalid argument: {arg}")
+            help()
+            sys.exit(1)
+
+
 def parse_args() -> PaAppArgs:
     """Parse the command line arguments."""
+    validate_args()
     res = PaAppArgs(None, None, None, None, None, None, None, False, False, False)
     if "version" in sys.argv or "--version" in sys.argv or "-v" in sys.argv:
         # Version is always printed, so no need to show it a second time.
         # print(f"Pyapp version: {__version__}")
         sys.exit(0)
-    if "help" in sys.argv or "--help" in sys.argv or "-h" in sys.argv:
+    if (
+        "help" in sys.argv
+        or "--help" in sys.argv
+        or "-h" in sys.argv
+        or "-?" in sys.argv
+    ):
         help()
         sys.exit(0)
 
@@ -221,16 +268,26 @@ def main() -> None:
 
     args: PaAppArgs = parse_args()
     if args.init is not None:
+        if check_if_initialized(args.init, config):
+            print("Application already initialized.")
+            sys.exit(1)
         return init_pyapp(args.init, config)
 
     if args.install is not None:
+        version = "latest"
+        name = args.install
         if "==" in args.install:
             name, version = args.install.split("==")
             version = validate_version(version)
-            return install_app(name, version, config)
-        return install_app(args.install, "latest", config)
+        if check_if_installed(name):
+            print(f"{name} is already installed.")
+            sys.exit(1)
+        return install_app(name, version, config)
 
     if args.uninstall is not None:
+        if not check_if_installed(args.uninstall):
+            print(f"{args.uninstall} is not installed.")
+            sys.exit(1)
         return uninstall_app(args.uninstall, config)
 
     if not is_virtual_env_active():
@@ -238,26 +295,38 @@ def main() -> None:
         print("Please activate a virtual environment before removing dependencies.")
         sys.exit(1)
 
-    path = find_pyapp_toml()
-    if path is None:
+    toml_path = find_pyapp_toml()
+    if toml_path is None:
         print("pyapp.toml not found.")
         print("Please run `pyapp --init` to create the file.")
         sys.exit(1)
 
     if args.build is True:
-        return build_app(path, config)
+        return build_app(toml_path, config)
 
     if args.add is not None:
-        return add_dependency(path, args.add, config)
+        if check_if_dep_installed(toml_path, args.add):
+            print(f"{args.add} is already installed.")
+            sys.exit(1)
+        return add_dependency(toml_path, args.add, config)
 
     if args.remove is not None:
-        return remove_dependency(path, args.remove, config)
+        if not check_if_dep_installed(toml_path, args.remove):
+            print(f"{args.remove} is not installed.")
+            sys.exit(1)
+        return remove_dependency(toml_path, args.remove, config)
 
     if args.add_local is not None:
-        return add_local(path, args.add_local, config)
+        if check_if_local_dep_installed(toml_path, args.add_local):
+            print(f"{args.add_local} is already installed.")
+            sys.exit(1)
+        return add_local(toml_path, args.add_local, config)
 
     if args.remove_local is not None:
-        return remove_local(path, args.remove_local, config)
+        if not check_if_local_dep_installed(toml_path, args.remove_local):
+            print(f"{args.remove_local} is not installed.")
+            sys.exit(1)
+        return remove_local(toml_path, args.remove_local, config)
 
     if args.list is True:
         return list_installed_apps(config)

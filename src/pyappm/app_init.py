@@ -44,7 +44,7 @@ from simple_toml import TomlWriter  # type: ignore
 
 
 def write_pyapp_py(path: Path, app_name: str, config: PyAPPMConfiguration) -> None:
-    """Write the default pyapp.py file to the specified path."""
+    """Write the default <app_name>.py file to the specified path."""
     with open(path, "w") as file:
         file.write(
             f"""# -*- coding: utf-8 -*-
@@ -157,3 +157,15 @@ def init_pyapp(path: str, config: PyAPPMConfiguration) -> None:
         create_virtual_env(abs_path, config)
     print("Done!")
     print()
+
+
+def check_if_initialized(path: str, config: PyAPPMConfiguration) -> bool:
+    """Check if the application has already been initialized."""
+    pth: Path
+    if path == ".":
+        pth = Path(os.getcwd())
+    elif "~" in path:
+        pth = Path(path).expanduser()
+    else:
+        pth = Path(path)
+    return Path(pth, APP_TOML).exists()

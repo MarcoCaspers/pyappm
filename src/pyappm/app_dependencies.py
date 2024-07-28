@@ -42,58 +42,55 @@ from configuration import PyAPPMConfiguration  # type: ignore
 from dotdict import DotDict  # type: ignore
 
 from pyappm_tools import run_command  # type: ignore
-from pyappm_tools import get_installed_packages  # type: ignore
-from pyappm_tools import make_dependancy_cmd  # type: ignore
-from pyappm_tools import get_list_diff  # type: ignore
-from pyappm_tools import load_toml  # type: ignore
-from pyappm_tools import save_toml  # type: ignore
+from pyappm_tools import get_installed_packages
+from pyappm_tools import make_dependancy_cmd
+from pyappm_tools import get_list_diff
+from pyappm_tools import load_toml
+from pyappm_tools import save_toml
 
 
-def add_dependency(path: Path, dep: str, config: PyAPPMConfiguration) -> None:
+def check_if_dep_installed(toml_path: Path, dep: str) -> bool:
+    """Check if a dependency is installed."""
+    toml = load_toml(toml_path)
+    if "dependencies" not in toml["project"]:
+        return False
+
+    return any(pkg["name"] == dep for pkg in toml.project.dependencies)
+
+
+def add_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> None:
     """Add a dependency to the pyapp.toml file and install it in the virtual environment."""
-    data = load_toml(path)
-    if "dependencies" not in data["project"]:
-        data["project"]["dependencies"] = []
-
-    for pkg in data["project"]["dependencies"]:
-        if pkg["name"] == dep:
-            print(f"{dep} is already in the dependencies.")
-            return
+    toml = load_toml(toml_path)
+    if "dependencies" not in toml["project"]:
+        toml["project"]["dependencies"] = []
     print("Installing dependency... (this may take a while)")
-    packages = get_installed_packages(path.parent, config)
-    run_command(make_dependancy_cmd(path.parent, config, "install", dep))
-    new_packages = get_installed_packages(path.parent, config)
+    pkg_path = toml_path.parent
+    packages = get_installed_packages(pkg_path, config)
+    run_command(make_dependancy_cmd(pkg_path, config, "install", dep))
+    new_packages = get_installed_packages(pkg_path, config)
+    if not dep in new_packages:
+        print(f"Failed to install {dep}")
+        return
     new_deps = get_list_diff(packages, new_packages, dep)
     pkg = DotDict({"name": dep, "new_packages": new_deps})
-    data["project"]["dependencies"].append(pkg)
-    save_toml(path, data)
+    toml.project.dependencies.append(pkg)
+    save_toml(toml_path, toml)
     print(f"Installed {dep}")
 
 
-def remove_dependency(path: Path, dep: str, config: PyAPPMConfiguration) -> None:
+def remove_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> None:
     """Remove a dependency from the pyapp.toml file."""
-    data = load_toml(path)
-    if "dependencies" not in data["project"]:
-        print("No dependencies found.")
-        sys.exit(1)
-    found = None
-
-    for pkg in data["project"]["dependencies"]:
-        if pkg["name"] == dep:
-            found = pkg
-            break
-    if not found:
-        print(f"{dep} is not in the dependencies.")
-        return
-
+    toml = load_toml(toml_path)
+    found = next(pkg for pkg in toml.project.dependencies if pkg["name"] == dep)
     print("Removing dependency... (this may take a while)")
-    run_command(make_dependancy_cmd(path.parent, config, "uninstall -y", dep))
+    pkg_path = toml_path.parent
+    run_command(make_dependancy_cmd(pkg_path, config, "uninstall -y", dep))
     for pkg in found["new_packages"]:
-        run_command(make_dependancy_cmd(path.parent, config, "uninstall -y", pkg))
+        run_command(make_dependancy_cmd(pkg_path, config, "uninstall -y", pkg))
 
-    data["project"]["dependencies"] = [
-        DotDict(pkg) for pkg in data["project"]["dependencies"] if pkg["name"] != dep
+    toml["project"]["dependencies"] = [
+        DotDict(pkg) for pkg in toml["project"]["dependencies"] if pkg["name"] != dep
     ]
-    save_toml(path, data)
+    save_toml(toml_path, toml)
 
     print(f"Removed {dep}")
