@@ -71,8 +71,7 @@ def help() -> None:
         "Python Application Manager (pyappm) is a tool to manage Python applications and their dependencies."
     )
     print()
-    print("Usage:")
-    print("  pyappm [command] [arguments]")
+    print("Usage: pyappm [command] [arguments]")
     print()
     print("  pyappm init [application name]     Initialize the application")
     print()
@@ -204,7 +203,7 @@ def parse_args() -> PaAppArgs:
         res.list_deps = True
 
     if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Invalid command(s).")
+        print("Invalid invalid number of arguments.")
         help()
         sys.exit(1)
 
@@ -296,6 +295,11 @@ def main() -> None:
         return init_pyapp(args.init, config)
 
     if args.install is not None:
+        if is_virtual_env_active():
+            print(
+                "Please deactivate the virtual environment before installing an application."
+            )
+            sys.exit(1)
         version = "latest"
         name = args.install
         if "==" in args.install:

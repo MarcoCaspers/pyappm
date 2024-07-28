@@ -14,8 +14,7 @@ description=""
 authors=[]
 requires_python=">=3.10"
 type="application"
-dependencies=[{name="RestApiClientCore-1.1.5-py3-none-any.whl", new_packages=["RestApiClientCore"]}]
-local_dependencies=[]
+dependencies=[]
 
 [executable]
 demo="demo:run"

@@ -166,11 +166,22 @@ def check_if_installed(name: str) -> bool:
     return name in create_apps_list()
 
 
+def get_app_name(path: Path, config: PyAPPMConfiguration) -> str:
+    """Get the application name from the local file."""
+    run_command(f"unzip -j {path} {APP_TOML} -d {config.temp_dir}")
+    toml = load_toml(Path(config.temp_dir, APP_TOML))
+    name = toml.get("project", {}).get("name", "")
+    if name == "":
+        print(f"Failed to get the application name from {path}")
+        sys.exit(1)
+    return name
+
+
 def install_app(name: str, version: str, config: PyAPPMConfiguration) -> None:
     local = False
     if PYAPP_EXT in name:
         source_path = Path(name).resolve()
-        name = source_path.name.replace(PYAPP_EXT, "")
+        name = get_app_name(source_path, config)
         local = True
     if local is False:
         source_path = Path(DL_CACHE, f"{name}{PYAPP_EXT}")

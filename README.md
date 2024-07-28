@@ -8,19 +8,19 @@ NOTE:<br>
 This is a work in progress and not yet ready for production use.<br>
 DO NOT run the installer as root.<br><br>
 
-## Features
+## Features v1.0.0
 
 - Install applications from a repository
 - Install applications from a file
 - Uninstall applications
-- List installed applications<br>
+- List installed applications
 - Initialize a new application project
 - Build an application
 - Add an dependency to an application (from PyPi)
 - Add an dependency to an application (from a file)
 - Remove a dependency from an application<br><br>
 
-## Roadmap
+## Roadmap for v1.1.0
 
 - Add an application to a repository
 - Remove an application from a repository
@@ -28,7 +28,7 @@ DO NOT run the installer as root.<br><br>
 - Update an application
 - A repository for applications<br><br>
 
-## Pre-requisites
+## Dependencies
 
 - Python 3.10 or higher
 - wget
