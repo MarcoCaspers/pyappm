@@ -95,10 +95,18 @@ def add_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> No
         pkg_name = dep_path.name
     if "[" in pkg_name:
         pkg_name = pkg_name.split("[")[0]
+    print(f"Checking if {pkg_name} is installed...")
+    print(f"Old packages: {packages}")
+    print(f"New packages: {new_packages}")
+    print(f"Package in new packages: {pkg_name in new_packages}")
     if (".whl" not in dep and not pkg_name in new_packages) or len(new_packages) == len(
         packages
     ):
-        print(f"Failed to install {dep}")
+        print(f"Failed to install {pkg_name} or package was already installed")
+        print("Trying to roll back installation (this may take a while)")
+        pkgs = get_list_diff(new_packages, packages, "@@@xxx@@@")
+        for pkg in pkgs:
+            run_command(make_dependancy_cmd(pkg_path, config, "uninstall -y", pkg))
         return
 
     new_deps = get_list_diff(packages, new_packages, pkg_name)
