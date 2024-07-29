@@ -64,8 +64,11 @@ def check_if_dep_installed(toml_path: Path, dep: str) -> bool:
     toml = load_toml(toml_path)
     if "dependencies" not in toml["project"]:
         return False
+    pkg_name = dep
+    if "[" in pkg_name:
+        pkg_name = pkg_name.split("[")[0]
     return any(
-        pkg["name"] == dep or (".whl" in pkg["name"] and dep in pkg["name"])
+        pkg["name"] == pkg_name or (".whl" in pkg["name"] and pkg_name in pkg["name"])
         for pkg in toml["project"]["dependencies"]
     )
 
