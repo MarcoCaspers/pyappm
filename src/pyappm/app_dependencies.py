@@ -95,10 +95,10 @@ def add_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> No
         pkg_name = dep_path.name
     if "[" in pkg_name:
         pkg_name = pkg_name.split("[")[0]
-    print(f"Checking if {pkg_name} is installed...")
-    print(f"Old packages: {packages}")
-    print(f"New packages: {new_packages}")
-    print(f"Package in new packages: {pkg_name in new_packages}")
+    # print(f"Checking if {pkg_name} is installed...")
+    # print(f"Old packages: {packages}")
+    # print(f"New packages: {new_packages}")
+    # print(f"Package in new packages: {pkg_name in new_packages}")
     if (".whl" not in dep and not pkg_name in new_packages) or len(new_packages) == len(
         packages
     ):
