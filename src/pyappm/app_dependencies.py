@@ -50,6 +50,15 @@ from pyappm_tools import load_toml
 from pyappm_tools import save_toml
 
 
+def get_dep_pkg(toml: DotDict, dep: str) -> dict:
+    """Check if a dependency is installed."""
+    return next(
+        pkg
+        for pkg in toml["project"]["dependencies"]
+        if pkg["name"] == dep or (".whl" in pkg["name"] and dep in pkg["name"])
+    )
+
+
 def check_if_dep_installed(toml_path: Path, dep: str) -> bool:
     """Check if a dependency is installed."""
     toml = load_toml(toml_path)
@@ -81,31 +90,28 @@ def add_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> No
     cmd = make_dependancy_cmd(pkg_path, config, "install", dep_cmd)
     run_command(cmd)
     new_packages = get_installed_packages(pkg_path, config)
-    if (".whl" not in dep and not dep in new_packages) or len(new_packages) == len(
+    pkg_name = dep
+    if ".whl" in dep:
+        pkg_name = dep_path.name
+    if "[" in pkg_name:
+        pkg_name = pkg_name.split("[")[0]
+    if (".whl" not in dep and not pkg_name in new_packages) or len(new_packages) == len(
         packages
     ):
         print(f"Failed to install {dep}")
         return
-    pkg_name = dep
-    if ".whl" in dep:
-        pkg_name = Path(dep).stem
+
     new_deps = get_list_diff(packages, new_packages, pkg_name)
-    if ".whl" in dep:
-        pkg_name = f"{pkg_name}.whl"
     pkg = DotDict({"name": pkg_name, "new_packages": new_deps})
     toml["project"]["dependencies"].append(pkg)
     save_toml(toml_path, toml)
-    print(f"Installed {dep}")
+    print(f"Installed {pkg_name}")
 
 
 def remove_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> None:
     """Remove a dependency from the pyapp.toml file."""
     toml = load_toml(toml_path)
-    found = next(
-        pkg
-        for pkg in toml["project"]["dependencies"]
-        if pkg["name"] == dep or (".whl" in pkg["name"] and dep in pkg["name"])
-    )
+    found = get_dep_pkg(toml, dep)
     print("Removing dependency... (this may take a while)")
     pkg_path = toml_path.parent
     run_command(make_dependancy_cmd(pkg_path, config, "uninstall -y", dep))
@@ -119,5 +125,5 @@ def remove_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) ->
     ]
     save_toml(toml_path, toml)
     if ".whl" in dep:
-        run_command(f'rm {Path(pkg_path, "deps", f"{dep}.whl")}')
+        run_command(f'rm {Path(pkg_path, "deps", found["name"])}')
     print(f"Removed {dep}")
