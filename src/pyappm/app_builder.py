@@ -125,5 +125,5 @@ def build_app(toml_path: Path, config: PyAPPMConfiguration) -> None:
     commands.append(cmd_files_list)
     for command in commands:
         run_command(command)
-    print(f"Built {app_name}-{version}.{PYAPP_EXT}")
+    print(f"Built {app_name}-{version}{PYAPP_EXT}")
     print("Done!")

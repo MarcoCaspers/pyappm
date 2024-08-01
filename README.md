@@ -8,7 +8,7 @@ NOTE:<br>
 This is a work in progress and not yet ready for production use.<br>
 DO NOT run the installer as root.<br><br>
 
-## Features v1.0.0
+## Features v1.0.4
 
 - Install applications from a repository
 - Install applications from a file
@@ -33,6 +33,17 @@ DO NOT run the installer as root.<br><br>
 - Python 3.10 or higher
 - wget
 - unzip<br><br>
+
+## Requirements
+
+The user home directory needs to have a directory named .local/bin which is part of the PATH.<br>
+If it doesn't exist, create it and add it to the PATH by running the following commands:<br><br>
+    
+    ```bash
+    mkdir -p ~/.local/bin
+    echo 'export PATH=$PATH:~/.local/bin' >> ~/.bashrc
+    source ~/.bashrc
+    ```<br><br>
 
 ## Installation
 
