@@ -45,21 +45,36 @@ import subprocess
 
 from pathlib import Path
 
-from pyappm_constants import BIN_DIR  # type: ignore
-from pyappm_constants import EXE_NAME  # type: ignore
-from pyappm_constants import INSTALL_DIR  # type: ignore
-from pyappm_constants import DL_CACHE  # type: ignore
-from pyappm_constants import CFG_DIR  # type: ignore
-from pyappm_constants import __version__  # type: ignore
-from pyappm_constants import __author__  # type: ignore
-from pyappm_constants import __copyright__  # type: ignore
-from pyappm_constants import __license__  # type: ignore
-from pyappm_constants import MINIMUM_PYTHON_VERSION  # type: ignore
-from pyappm_constants import LINUX_DEPENDENCIES  # type: ignore
-from pyappm_constants import WINDOWS_DEPENDENCIES  # type: ignore
-from pyappm_constants import DOWNLOAD_URL  # type: ignore
-from pyappm_constants import TMP_DIR  # type: ignore
-from pyappm_constants import APP_DIR  # type: ignore
+# Define the download URL of the pyappm application for the installer to download
+DOWNLOAD_URL = "https://pyappm.nl/downloads/pyappm.zip"
+
+# Define the path to the pyappm executable
+BIN_DIR = Path("~/.local/bin").expanduser()
+
+# Define the executable name for the pyappm application
+EXE_NAME = "pyappm"
+
+# Define the path to the pyappm application
+INSTALL_DIR = Path("~/.pyappm").expanduser()
+
+# Define the path to the pyappm download cache directory
+DL_CACHE = Path("~/.cache/pyappm").expanduser()
+
+# Define the path to the pyappm configuration directory
+CFG_DIR = Path("~/.config/pyappm").expanduser()
+
+# Define the minimum Python version
+MINIMUM_PYTHON_VERSION = (3, 10)
+
+# Define the Linux/Windows dependencies
+LINUX_DEPENDENCIES = ["wget", "unzip"]
+WINDOWS_DEPENDENCIES = ["wget.exe", "unzip.exe"]
+
+# Define the path to the pyappm temporary directory for the installer
+TMP_DIR = Path("/tmp/pyappm")
+
+# Define the path to the pyappm applications directory
+APP_DIR = Path("~/.pyappm/share/applications").expanduser()
 
 
 def uninstall_pyapp() -> None:
@@ -74,11 +89,11 @@ def uninstall_pyapp() -> None:
 
 def print_info() -> None:
     """Print the Pyapp information."""
-    print(f"Pyapp Installer v{__version__}")
+    print(f"Pyapp Installer v1.0.0")
     print()
-    print(f"Author: {__author__}")
-    print(f"Copyright {__copyright__}")
-    print(f"License: {__license__}")
+    print(f"Author: Marco Caspers")
+    print(f"Copyright 2024 Marco Caspers")
+    print(f"License: MIT License")
     print()
 
 

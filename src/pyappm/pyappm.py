@@ -158,6 +158,14 @@ def arg_or_default(arg: str | None, default: str | None) -> str | None:
 
 def parse_args() -> PaAppArgs:
     """Parse the command line arguments."""
+    if len(sys.argv) < 2:
+        print("No command specified.")
+        help()
+        sys.exit(1)
+    if len(sys.argv) > 3:
+        print("Invalid invalid number of arguments specified.")
+        help()
+        sys.exit(1)
     validate_args()
     res = PaAppArgs(None, None, None, None, None, None, None, False, False, False)
     cmd = sys.argv[1]
@@ -201,11 +209,6 @@ def parse_args() -> PaAppArgs:
         res.list = True
     if "deps" in sys.argv or "--deps" in sys.argv or "-d" in sys.argv:
         res.list_deps = True
-
-    if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Invalid invalid number of arguments.")
-        help()
-        sys.exit(1)
 
     return res
 

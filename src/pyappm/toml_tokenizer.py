@@ -31,7 +31,9 @@
 
 # Simple tokenizer for toml files
 # The tokenizer is used to parse toml files and return a list of tokens
-
+#
+# Don't use this for a real toml file, it only works for the simplified toml files in this project.
+#
 
 from __future__ import annotations
 from pathlib import Path

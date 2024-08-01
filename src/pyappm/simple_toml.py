@@ -33,6 +33,8 @@
 # The goal is to not being dependant on 3rd party libraries so pyappm can run without
 # a vritual environment of its own.
 #
+# Don't use this for a real toml file, it only works for the simplified toml files in this project.
+#
 # TomlReader Usage example:
 # path = Path("path/to/your.toml")
 # with TomlReader(path) as reader:

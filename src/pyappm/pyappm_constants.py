@@ -30,7 +30,7 @@
 # SPDX-License-Identifier: MIT
 #
 
-# Global constants for pyappm and the installer.
+# Global constants for pyappm.
 
 from pathlib import Path
 
@@ -39,39 +39,23 @@ from __about__ import __author__  # type: ignore
 from __about__ import __copyright__  # type: ignore
 from __about__ import __license__  # type: ignore
 
-# Define the Linux/Windows dependencies
-LINUX_DEPENDENCIES = ["wget", "unzip"]
-WINDOWS_DEPENDENCIES = ["wget.exe", "unzip.exe"]
+from installer import BIN_DIR  # type: ignore
+from installer import EXE_NAME  # type: ignore
+from installer import INSTALL_DIR  # type: ignore
+from installer import DL_CACHE  # type: ignore
+from installer import MINIMUM_PYTHON_VERSION  # type: ignore
+from installer import DOWNLOAD_URL  # type: ignore
+from installer import CFG_DIR  # type: ignore
+from installer import APP_DIR  # type: ignore
 
-# Define the minimum Python version
-MINIMUM_PYTHON_VERSION = (3, 10)
-
-# Define the download URL of the pyappm application for the installer to download
-DOWNLOAD_URL = "https://pyappm.nl/downloads/pyappm.zip"
-
-# Define the path to the pyappm temporary directory for the installer
-TMP_DIR = Path("/tmp/pyappm")
-
-# Define the path to the pyappm application
-INSTALL_DIR = Path("~/.pyappm").expanduser()
-
-# Define the path to the pyappm executable
-BIN_DIR = Path("~/.local/bin").expanduser()
 
 # Define the path to the pyappm applications directory
 APP_DIR = Path("~/.pyappm/share/applications").expanduser()
 
-# Define the path to the pyappm download cache directory
-DL_CACHE = Path("~/.cache/pyappm").expanduser()
-
-# Define the path to the pyappm configuration directory
-CFG_DIR = Path("~/.config/pyappm").expanduser()
 
 # Define the filename of the pyappm configuration file
 CONFIG_FILE_NAME = "pyappmconfig.toml"
 
-# Define the executable name for the pyappm application
-EXE_NAME = "pyappm"
 
 # Define the .toml filename for applications
 APP_TOML = "pyapp.toml"

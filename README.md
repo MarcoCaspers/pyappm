@@ -37,7 +37,7 @@ DO NOT run the installer as root.<br><br>
 ## Installation
 
 ```bash
-wget https://pyappm.nl/downloads/installer.py -O - | python3
+wget https://pyappm.nl/downloads/installer.py && python3 installer.py install
 ```  
 
 <br>

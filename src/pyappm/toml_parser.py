@@ -30,6 +30,9 @@
 #
 
 # Simple toml is a small simple utility that parses toml files and returns a dictionary
+#
+# Don't use this for a real toml file, it only works for the simplified toml files in this project.
+#
 
 from __future__ import annotations
 from pathlib import Path
