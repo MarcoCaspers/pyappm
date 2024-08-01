@@ -47,10 +47,7 @@ from installer import MINIMUM_PYTHON_VERSION  # type: ignore
 from installer import DOWNLOAD_URL  # type: ignore
 from installer import CFG_DIR  # type: ignore
 from installer import APP_DIR  # type: ignore
-
-
-# Define the path to the pyappm applications directory
-APP_DIR = Path("~/.pyappm/share/applications").expanduser()
+from installer import TMP_DIR  # type: ignore
 
 
 # Define the filename of the pyappm configuration file
