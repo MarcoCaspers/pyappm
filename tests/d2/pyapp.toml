@@ -1,0 +1,21 @@
+[tools]
+env_create_tool="python3 -m venv"
+env_activate_tool="source bin/activate"
+env_deactivate_tool="deactivate"
+env_name="env"
+env_lib_installer="python3 -m pip"
+
+[project]
+name="d2"
+version="0.1.0"
+readme="README.md"
+license="LICENSE.txt"
+description=""
+authors=[]
+requires_python=">=3.10"
+type="application"
+dependencies=[]
+
+[executable]
+d2="d2:run"
+

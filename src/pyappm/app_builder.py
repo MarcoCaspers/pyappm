@@ -72,15 +72,13 @@ from pyappm_constants import PYAPP_EXT  # type: ignore
 from configuration import PyAPPMConfiguration  # type: ignore
 
 from pyappm_tools import run_command  # type: ignore
-from pyappm_tools import load_toml  # type: ignore
-
-from dotdict import DotDict  # type: ignore
+from pyapp_toml import LoadAppToml  # type: ignore
 
 
 def build_app(toml_path: Path, config: PyAPPMConfiguration) -> None:
     """Build the application."""
     print("Building the application...")
-    toml = load_toml(toml_path)
+    toml = LoadAppToml(toml_path)
     app_path = toml_path.parent
     app_name = app_path.name
     archive = Path(toml_path.parent, "build", f"{app_name}.zip")

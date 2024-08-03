@@ -43,11 +43,15 @@ from pathlib import Path
 from datetime import datetime
 
 from configuration import PyAPPMConfiguration  # type: ignore
-from pyappm_tools import ensure_no_virtual_env  # type: ignore
-from pyappm_tools import APP_TOML  # type: ignore
-from pyappm_tools import create_virtual_env  # type: ignore
+
+from pyappm_constants import APP_TOML  # type: ignore
+
+from virtual_env import EnsureVirtualEnvIsNotActive  # type: ignore
+from virtual_env import CreateVirtualEnv  # type: ignore
+
 from dotdict import DotDict  # type: ignore
-from simple_toml import TomlWriter  # type: ignore
+
+from pyapp_toml import CreateAppToml  # type: ignore
 
 
 def write_pyapp_py(path: Path, app_name: str, config: PyAPPMConfiguration) -> None:
@@ -76,44 +80,9 @@ if __name__ == "__main__":
         )
 
 
-def write_default_pyapp_toml(
-    path: Path, app_name: str, config: PyAPPMConfiguration
-) -> None:
-    """Write the default pyapp.toml file to the specified path."""
-    toml = DotDict(
-        {
-            "tools": DotDict(
-                {
-                    "env_create_tool": config.env_create_tool,
-                    "env_activate_tool": config.env_activate_tool,
-                    "env_deactivate_tool": config.env_deactivate_tool,
-                    "env_name": config.default_env_name,
-                    "env_lib_installer": config.env_lib_installer_tool,
-                }
-            ),
-            "project": DotDict(
-                {
-                    "name": app_name,
-                    "version": config.default_app_version,
-                    "readme": "README.md",
-                    "license": "LICENSE.txt",
-                    "description": "",
-                    "authors": config.authors,
-                    "requires_python": config.requires_python,
-                    "type": "application",
-                    "dependencies": config.dependencies,
-                }
-            ),
-            "executable": DotDict({app_name: f"{app_name}:run"}),
-        }
-    )
-    with TomlWriter(path) as writer:
-        writer.write(toml)
-
-
 def init_pyapp(path: str, config: PyAPPMConfiguration) -> None:
     """Initialize the application in the specified directory."""
-    ensure_no_virtual_env()
+    EnsureVirtualEnvIsNotActive()
     pth: Path
     if path == ".":
         pth = Path(os.getcwd())
@@ -157,10 +126,10 @@ def init_pyapp(path: str, config: PyAPPMConfiguration) -> None:
         config,
     )
     print(f"Initializing {APP_TOML}")
-    write_default_pyapp_toml(Path(pth, APP_TOML), app_name, config)
+    CreateAppToml(Path(pth, APP_TOML), app_name, config)
     if config.create_venv:
         abs_path = Path(pth).resolve()
-        create_virtual_env(abs_path, config)
+        CreateVirtualEnv(abs_path, config)
     print("Done!")
     print()
 

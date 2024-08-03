@@ -17,3 +17,6 @@ build:
 	@./install
 	@echo "Install completed successfully."
 
+all:
+	make clean
+	make build

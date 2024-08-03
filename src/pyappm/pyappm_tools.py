@@ -32,35 +32,30 @@
 # This module contains utility functions for pyappm.
 
 import os
-import sys
 import subprocess
-from typing import Optional
 from pathlib import Path
 
 from configuration import PyAPPMConfiguration  # type: ignore
 
 from pyappm_constants import APP_TOML  # type: ignore
 from pyappm_constants import ENV_ENVIRON  # type: ignore
-from pyappm_constants import ERR_VENV_ACTIVE  # type: ignore
-from pyappm_constants import ERR_DEACTIVATE_VENV  # type: ignore
-from pyappm_constants import MSG_INIT_VENV  # type: ignore
+
 from pyappm_constants import SHELL_EXE  # type: ignore
 from pyappm_constants import APP_DIR  # type: ignore
 
-from simple_toml import TomlReader, TomlWriter  # type: ignore
+from pyapp_toml import LoadAppToml  # type: ignore
 from dotdict import DotDict  # type: ignore
 
 
-def is_virtual_env_active() -> bool:
-    return ENV_ENVIRON in os.environ
+from virtual_env import IsVirtualEnvActive  # type: ignore
 
 
-def find_pyapp_toml() -> Path | None:
+def FindAppToml() -> Path | None:
     """Find the pyapp.toml file in the current directory or its parent directories."""
 
     # But first check if we have a virtual environment, because that makes things a lot easier.
     # Also it means that we can use pyappm from anywhere in the filesystem, whereas without the venv, we need to be in the project directory.
-    if is_virtual_env_active():
+    if IsVirtualEnvActive():
         current_dir = Path(os.environ[ENV_ENVIRON]).parent
         if Path(current_dir, APP_TOML).exists():
             return Path(current_dir, APP_TOML)
@@ -77,59 +72,6 @@ def find_pyapp_toml() -> Path | None:
 def run_command(command: str) -> None:
     """Run a command in a subprocess."""
     subprocess.call(command, shell=True, executable=SHELL_EXE)
-
-
-def ensure_no_virtual_env() -> None:
-    """Ensure that a virtual environment is not active."""
-    if is_virtual_env_active():
-        print(ERR_VENV_ACTIVE)
-        print(ERR_DEACTIVATE_VENV)
-        sys.exit(1)
-
-
-def create_virtual_env(
-    path: Path,
-    config: PyAPPMConfiguration,
-    name: str | None = None,
-    ctool: str | None = None,
-    ltool: str | None = None,
-) -> None:
-    """Create a virtual environment using the configured tool."""
-    ensure_no_virtual_env()
-    print(MSG_INIT_VENV)
-    env_create_tool = config.env_create_tool
-    if ctool is not None:
-        env_create_tool = ctool
-    env_name = config.default_env_name
-
-    if name is not None:
-        env_name = name
-    env_path = Path(path, env_name, "bin").resolve()
-    lib_installer = config.env_lib_installer_tool
-    if ltool is not None:
-        lib_installer = ltool
-    commands = [
-        f"cd {path}; {env_create_tool} {env_name}",
-        f"cd {env_path}; source activate; {lib_installer} install --upgrade pip setuptools > /dev/null 2>&1",
-    ]
-    for cmd in commands:
-        run_command(cmd)
-
-
-def get_installed_packages(path: Path, config: PyAPPMConfiguration) -> list[str]:
-    """Get the installed dependencies from the virtual environment."""
-    env_path = Path(path, config.default_env_name, "bin").resolve()
-    lib_installer = config.env_lib_installer_tool
-    output = subprocess.check_output(
-        f"cd {env_path}; source activate; {lib_installer} freeze",
-        shell=True,
-        executable="/bin/bash",
-    ).decode("utf-8")
-    lst = output.split("\n")
-    plst = [pkg.split("==")[0] for pkg in lst]  # remove the version number
-    return [
-        plst.split(" @ ")[0] for plst in plst if len(plst) > 0
-    ]  # remove the bits for a file install.
 
 
 def make_dependancy_cmd(
@@ -170,20 +112,7 @@ def create_apps_list() -> list[str]:
     return apps
 
 
-def load_toml(path: Path) -> DotDict:
-    """Load the toml file."""
-    with TomlReader(path) as reader:
-        data = reader.read()
-    return data
-
-
 def load_app_toml(name: str) -> DotDict:
     """Load the toml file for the application."""
     app_path = Path(APP_DIR, name)
-    return load_toml(Path(app_path, APP_TOML))
-
-
-def save_toml(path: Path, data: DotDict) -> None:
-    """Save the toml file."""
-    with TomlWriter(path) as writer:
-        writer.write(data)
+    return LoadAppToml(Path(app_path, APP_TOML))

@@ -43,11 +43,13 @@ from configuration import PyAPPMConfiguration  # type: ignore
 from dotdict import DotDict  # type: ignore
 
 from pyappm_tools import run_command  # type: ignore
-from pyappm_tools import get_installed_packages
 from pyappm_tools import make_dependancy_cmd
 from pyappm_tools import get_list_diff
-from pyappm_tools import load_toml
-from pyappm_tools import save_toml
+
+from virtual_env import GetVirtualEnvInstalledPackages  # type: ignore
+
+from pyapp_toml import LoadAppToml  # type: ignore
+from pyapp_toml import SaveAppToml
 
 
 def get_dep_pkg(toml: DotDict, dep: str) -> dict:
@@ -61,7 +63,7 @@ def get_dep_pkg(toml: DotDict, dep: str) -> dict:
 
 def check_if_dep_installed(toml_path: Path, dep: str) -> bool:
     """Check if a dependency is installed."""
-    toml = load_toml(toml_path)
+    toml = LoadAppToml(toml_path)
     if "dependencies" not in toml["project"]:
         return False
     pkg_name = dep
@@ -75,14 +77,14 @@ def check_if_dep_installed(toml_path: Path, dep: str) -> bool:
 
 def add_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> None:
     """Add a dependency to the pyapp.toml file and install it in the virtual environment."""
-    toml = load_toml(toml_path)
+    toml = LoadAppToml(toml_path)
     if "dependencies" not in toml["project"]:
         toml["project"]["dependencies"] = []
     print("Installing dependency... (this may take a while)")
 
     pkg_path = toml_path.parent
     deps_file_path = pkg_path / "deps"
-    packages = get_installed_packages(pkg_path, config)
+    packages = GetVirtualEnvInstalledPackages(pkg_path, config)
     dep_cmd = dep
     if ".whl" in dep:
         dep_path = Path(dep).resolve()
@@ -92,7 +94,7 @@ def add_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> No
         dep_cmd = str(Path(deps_file_path, dep_path.name))
     cmd = make_dependancy_cmd(pkg_path, config, "install", dep_cmd)
     run_command(cmd)
-    new_packages = get_installed_packages(pkg_path, config)
+    new_packages = GetVirtualEnvInstalledPackages(pkg_path, config)
     pkg_name = dep
     if ".whl" in dep:
         pkg_name = dep_path.name
@@ -115,13 +117,13 @@ def add_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> No
     new_deps = get_list_diff(packages, new_packages, pkg_name)
     pkg = DotDict({"name": pkg_name, "new_packages": new_deps})
     toml["project"]["dependencies"].append(pkg)
-    save_toml(toml_path, toml)
+    SaveAppToml(toml_path, toml)
     print(f"Installed {pkg_name}")
 
 
 def remove_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> None:
     """Remove a dependency from the pyapp.toml file."""
-    toml = load_toml(toml_path)
+    toml = LoadAppToml(toml_path)
     found = get_dep_pkg(toml, dep)
     print("Removing dependency... (this may take a while)")
     pkg_path = toml_path.parent
@@ -134,7 +136,7 @@ def remove_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) ->
         for pkg in toml["project"]["dependencies"]
         if pkg["name"] != dep and not (".whl" in pkg["name"] and dep in pkg["name"])
     ]
-    save_toml(toml_path, toml)
+    SaveAppToml(toml_path, toml)
     if ".whl" in dep:
         run_command(f'rm {Path(pkg_path, "deps", found["name"])}')
     print(f"Removed {dep}")

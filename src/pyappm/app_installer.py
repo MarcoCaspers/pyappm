@@ -56,11 +56,12 @@ from simple_requests import get  # type: ignore
 from simple_requests import Response  # type: ignore
 
 from pyappm_tools import run_command  # type: ignore
-from pyappm_tools import create_virtual_env  # type: ignore
 from pyappm_tools import make_dependancy_cmd  # type: ignore
 from pyappm_tools import create_apps_list  # type: ignore
-from pyappm_tools import load_app_toml  # type: ignore
-from pyappm_tools import load_toml  # type: ignore
+
+from pyapp_toml import LoadAppToml  # type: ignore
+
+from virtual_env import CreateVirtualEnv  # type: ignore
 
 from configuration import PyAPPMConfiguration  # type: ignore
 
@@ -122,7 +123,7 @@ def get_from_repo_or_cache(
 def write_executables(name: str, config: PyAPPMConfiguration) -> None:
     """Write the executable files."""
     app_path = Path(config.app_dir, name)
-    toml = load_toml(Path(app_path, APP_TOML))
+    toml = LoadAppToml(Path(app_path, APP_TOML))
 
     executables = toml.get("executable", {})
     if len(executables) == 0:
@@ -169,7 +170,7 @@ def check_if_installed(name: str) -> bool:
 def get_app_name(path: Path, config: PyAPPMConfiguration) -> str:
     """Get the application name from the local file."""
     run_command(f"unzip -j {path} {APP_TOML} -d {config.temp_dir}")
-    toml = load_toml(Path(config.temp_dir, APP_TOML))
+    toml = LoadAppToml(Path(config.temp_dir, APP_TOML))
     name = toml.get("project", {}).get("name", "")
     if name == "":
         print(f"Failed to get the application name from {path}")
@@ -195,10 +196,10 @@ def install_app(name: str, version: str, config: PyAPPMConfiguration) -> None:
     # Unzip the application to the install path
     run_command(f"unzip {source_path} -d {install_path}")
     # Read the application toml file
-    data = load_app_toml(name)
+    data = LoadAppToml(name)
 
     # create the virtual environment
-    create_virtual_env(
+    CreateVirtualEnv(
         install_path,
         config,
         name=str(data.tools.env_name),

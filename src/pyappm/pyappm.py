@@ -33,10 +33,13 @@
 #
 # This is the main entry point for the myapp tool.
 
+import sys
+import os
+from typing import Optional
+
 from dataclasses import dataclass
 from pathlib import Path
-import sys
-from typing import Optional
+
 
 from __about__ import __version__  # type: ignore
 
@@ -44,10 +47,18 @@ from pyappm_constants import APP_TOML  # type: ignore
 
 from configuration import PyAPPMConfiguration  # type: ignore
 
-from pyappm_tools import is_virtual_env_active  # type: ignore
-from pyappm_tools import find_pyapp_toml
+from virtual_env import IsVirtualEnvActive  # type: ignore
+from virtual_env import DeleteVirtualEnv
+from virtual_env import CreateVirtualEnv
+from virtual_env import VirtualEnvInstallDependencies
+from virtual_env import VirtualEnvListDependencies
+
+from pyappm_tools import FindAppToml  # type: ignore
 from pyappm_tools import create_apps_list
-from pyappm_tools import load_toml
+
+from pyapp_toml import LoadAppToml  # type: ignore
+from pyapp_toml import CreateAppToml
+from pyapp_toml import AppTomlListDependencies
 
 # Command implementations
 from app_init import init_pyapp  # type: ignore
@@ -87,7 +98,15 @@ def help() -> None:
     print()
     print("  pyappm version                     Show the version number")
     print("  pyappm help                        Show this message")
+
     print()
+    print("  pyappm venv create                 Create a virtual environment")
+    print("  pyappm venv delete                 Delete the virtual environment")
+    print("  pyappm venv list                   Lists installed dependencies")
+    print("  pyappm venv requirements           Installs the dependencies")
+    print()
+    print("  pyappm toml create                 Create a default pyapp.toml")
+    print("  pyappm toml list                   List the dependencies in pyapp.toml")
     print()
     print("For more information, see the README.md file.")
 
@@ -104,6 +123,12 @@ class PaAppArgs:
     build: bool = False
     list: bool = False
     list_deps: bool = False
+    venv_create: bool = False
+    venv_delete: bool = False
+    venv_requirements: bool = False
+    venv_list: bool = False
+    toml_list: bool = False
+    toml_create: bool = False
 
 
 def validate_args() -> None:
@@ -143,6 +168,10 @@ def validate_args() -> None:
         "deps",
         "--deps",
         "-d",
+        "venv",
+        "--venv",
+        "toml",
+        "--toml",
     ]:
         print(f"Invalid command: {sys.argv[1]}")
         help()
@@ -183,33 +212,52 @@ def parse_args() -> PaAppArgs:
 
     if cmd in ["init", "--init"]:
         res.init = arg_or_default(arg, ".")
-    if "add" in sys.argv or "--add" in sys.argv or "-a" in sys.argv:
+    if cmd in ["add", "--add", "-a"]:
         if arg is None:  # pragma: no cover
             print("No dependency specified.")
             sys.exit(1)
         res.add = arg
-    if "remove" in sys.argv or "--remove" in sys.argv or "-r" in sys.argv:
+    if cmd in ["remove", "--remove", "-r"]:
         if arg is None:
             print("No dependency specified.")
             sys.exit(1)
         res.remove = arg
-    if "install" in sys.argv or "--install" in sys.argv or "-i" in sys.argv:
+    if cmd in ["install", "--install", "-i"]:
         if arg is None:
             print("No application specified.")
             sys.exit(1)
         res.install = arg
-    if "uninstall" in sys.argv or "--uninstall" in sys.argv or "-u" in sys.argv:
+    if cmd in ["uninstall", "--uninstall", "-u"]:
         if arg is None:
             print("No application specified.")
             sys.exit(1)
         res.uninstall = arg
-    if "build" in sys.argv or "--build" in sys.argv or "-b" in sys.argv:
+    if cmd in ["build", "--build", "-b"]:
         res.build = True
-    if "list" in sys.argv or "--list" in sys.argv or "-l" in sys.argv:
+    if cmd in ["list", "--list", "-l"]:
         res.list = True
-    if "deps" in sys.argv or "--deps" in sys.argv or "-d" in sys.argv:
+    if cmd in ["deps", "--deps", "-d"]:
         res.list_deps = True
-
+    if cmd in ["venv", "--venv"]:
+        if arg == "create":
+            res.venv_create = True
+        elif arg == "delete":
+            res.venv_delete = True
+        elif arg in ["requirements", "reqs", "r"]:
+            res.venv_requirements = True
+        elif arg == "list":
+            res.venv_list = True
+        else:
+            print(f"Invalid venv command {arg}.")
+            sys.exit(1)
+    if cmd in ["toml", "--toml"]:
+        if arg == "create":
+            res.toml_create = True
+        elif arg == "list":
+            res.toml_list = True
+        else:
+            print(f"Invalid toml command {arg}.")
+            sys.exit(1)
     return res
 
 
@@ -271,7 +319,7 @@ def list_installed_apps(config: PyAPPMConfiguration) -> None:
     for app in apps:
         app_path = config.app_dir / app
         app_toml = app_path / APP_TOML
-        app = load_toml(app_toml)
+        app = LoadAppToml(app_toml)
         print(f"  {app.project.name} v{app.project.version}")
 
 
@@ -298,7 +346,7 @@ def main() -> None:
         return init_pyapp(args.init, config)
 
     if args.install is not None:
-        if is_virtual_env_active():
+        if IsVirtualEnvActive():
             print(
                 "Please deactivate the virtual environment before installing an application."
             )
@@ -319,12 +367,40 @@ def main() -> None:
             sys.exit(1)
         return uninstall_app(args.uninstall, config)
 
-    if not is_virtual_env_active():
+    toml_path = FindAppToml()
+    venv_root_path = Path(os.getcwd()) if toml_path is None else toml_path.parent
+
+    if args.toml_create is True:
+        toml_path = Path(os.getcwd()) / APP_TOML
+        app_name = Path(os.getcwd()).name
+        CreateAppToml(toml_path, app_name, config)
+        print(f"Created {APP_TOML}")
+        return
+
+    if args.venv_delete is True:
+        DeleteVirtualEnv(venv_root_path, config)
+        print("Deleted the virtual environment.")
+        return
+
+    if args.venv_create is True:
+        CreateVirtualEnv(venv_root_path, config)
+        print("Created the virtual environment.")
+        return
+
+    if args.venv_requirements is True:
+        return VirtualEnvInstallDependencies(venv_root_path, config)
+
+    if args.venv_list is True:
+        return VirtualEnvListDependencies(venv_root_path, config)
+
+    if args.toml_list is True:
+        return AppTomlListDependencies(toml_path)
+
+    if not IsVirtualEnvActive():
         print("A virtual environment is not active.")
         print("Please activate a virtual environment before removing dependencies.")
         sys.exit(1)
 
-    toml_path = find_pyapp_toml()
     if toml_path is None:
         print("pyapp.toml not found.")
         print("Please run `pyapp --init` to create the file.")
