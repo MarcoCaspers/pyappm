@@ -58,13 +58,13 @@ def SaveAppToml(path: Path, data: DotDict) -> None:
         writer.write(data)
 
 
-def AppTomlGetDependencies(path: Path) -> list[str]:
+def AppTomlGetDependencies(path: Path) -> list[tuple[str, str]]:
     """Read the requirements from the pyapp.toml file."""
     if path is None or not path.exists():
         raise FileNotFoundError(f"File not found: {path}")
     data = LoadAppToml(path)
     deps = data["project"]["dependencies"]
-    return [dep["name"] for dep in deps]
+    return [(dep["name"], dep["extra"]) for dep in deps]
 
 
 def CreateAppToml(path: Path, app_name: str, config: PyAPPMConfiguration) -> None:

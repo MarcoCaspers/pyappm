@@ -166,7 +166,10 @@ def VirtualEnvInstallDependencies(path: Path, config: PyAPPMConfiguration) -> No
         return
     print("Installing dependencies... (this may take a while)")
     for req in requirements:
-        cmd = f"cd {envpath}; source activate; {lib_installer} install {req} > /dev/null 2>&1"
+        dep = req[0]
+        if len(req[1]) > 0:
+            dep = f"{dep}[{req[1]}]"
+        cmd = f"cd {envpath}; source activate; {lib_installer} install {dep} > /dev/null 2>&1"
         subprocess.call(cmd, shell=True, executable=SHELL_EXE)
     print("Dependencies installed.")
 
