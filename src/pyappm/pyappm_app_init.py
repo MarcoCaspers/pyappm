@@ -128,18 +128,18 @@ def init_pyapp(path: str, is_service: bool, config: PyAPPMConfiguration) -> None
         print("Initializing .gitignore")
         Path(pth, ".gitignore").touch()
         cmd_list = [
-            "echo 'dist/' > .gitignore",
-            "echo 'build/' >> .gitignore",
-            "echo 'deps/' >> .gitignore",
-            "echo 'env/' >> .gitignore",
-            "echo '__pycache__/' >> .gitignore",
-            "echo '*.pyc' >> .gitignore",
-            "echo '*.pyo' >> .gitignore",
-            "echo '*.pyd' >> .gitignore",
-            "echo '*.egg-info' >> .gitignore",
-            "echo '*.code-workspace' >> .gitignore",
-            "echo '.vscode/' >> .gitignore",
-            "echo '.mypy_cache/' >> .gitignore",
+            "cd pth && echo 'dist/' > .gitignore",
+            "cd pth && echo 'build/' >> .gitignore",
+            "cd pth && echo 'deps/' >> .gitignore",
+            "cd pth && echo 'env/' >> .gitignore",
+            "cd pth && echo '__pycache__/' >> .gitignore",
+            "cd pth && echo '*.pyc' >> .gitignore",
+            "cd pth && echo '*.pyo' >> .gitignore",
+            "cd pth && echo '*.pyd' >> .gitignore",
+            "cd pth && echo '*.egg-info' >> .gitignore",
+            "cd pth && echo '*.code-workspace' >> .gitignore",
+            "cd pth && echo '.vscode/' >> .gitignore",
+            "cd pth && echo '.mypy_cache/' >> .gitignore",
         ]
         for cmd in cmd_list:
             run_command(cmd)
@@ -156,7 +156,7 @@ def init_pyapp(path: str, is_service: bool, config: PyAPPMConfiguration) -> None
     if config.create_changelog is True:
         print("Initializing CHANGELOG.md")
         Path(pth, "CHANGELOG.md").touch()
-        cmd = f"echo '# {app_name} Changelog' > CHANGELOG.md"
+        cmd = f"cd {pth} && echo '# {app_name} Changelog' > CHANGELOG.md"
         run_command(cmd)
     Path(pth, "tests").mkdir(exist_ok=True)
     Path(pth, "docs").mkdir(exist_ok=True)

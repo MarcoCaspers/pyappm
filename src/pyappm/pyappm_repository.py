@@ -170,18 +170,19 @@ class PyAPPMRepositoryManager:
 
     def save_repository_file(self, filename: Path) -> None:
         """Save the repository file."""
-        if not filename.exists():
-            default = True
         with open(filename, "w") as file:
             file.write("# PyAPPM repositories\n")
             file.write("#\n")
             file.write("# Repository name and URL\n")
             file.write("#\n")
-            if default:
-                file.write("# Default repositories, please don't change these\n")
-            for repo in self.repositories:
+            file.write("# Default repositories, please don't change these\n")
+            file.write("#\n")
+            for repo in DEFAULT_REPOSITORIES:
                 file.write(f"{repo.name} {repo.url}\n")
-            file.write("\n")
-            if default:
-                file.write("# End of default repositories\n")
+            file.write("# End of default repositories\n")
+            file.write("#\n")
+            for repo in self.repositories:
+                if repo in DEFAULT_REPOSITORIES:
+                    continue
+                file.write(f"{repo.name} {repo.url}\n")
             file.write("\n")
