@@ -21,3 +21,4 @@ before:
 ## [1.0.8] - 2024-09-01
 
 - Bugfix, removed repository from PyAPPMConfiguration because it's fully handled by PyAPPMRepositoryManager.
+- Bugfix, fixed path for repository file to expand user.

@@ -41,7 +41,7 @@ from pyappm_tools import compare_parsed_versions  # type: ignore
 from pyappm_tools import parse_version
 
 REPOSITORY_FILE = "repositories.txt"
-REPOSITORY_PATH = Path(f"~/.config/pyappm/{REPOSITORY_FILE}")
+REPOSITORY_PATH = Path(f"~/.config/pyappm/{REPOSITORY_FILE}").expanduser()
 
 pyappm_app_version = dict[str, str]  # {"name": name, "version": version}
 pyappm_repo_app_version = dict[str, pyappm_app_version]  # {"repo": repo, "app": app}
@@ -171,6 +171,18 @@ class PyAPPMRepositoryManager:
 
     def save_repository_file(self, filename: Path) -> None:
         """Save the repository file."""
+        if not filename.exists():
+            default = True
         with open(filename, "w") as file:
+            file.write("# PyAPPM repositories\n")
+            file.write("#\n")
+            file.write("# Repository name and URL\n")
+            file.write("#\n")
+            if default:
+                file.write("# Default repositories, please don't change these\n")
             for repo in self.repositories:
                 file.write(f"{repo.name} {repo.url}\n")
+            file.write("\n")
+            if default:
+                file.write("# End of default repositories\n")
+            file.write("\n")
