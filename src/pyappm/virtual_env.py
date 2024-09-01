@@ -40,7 +40,7 @@ import subprocess
 
 from pathlib import Path
 
-from configuration import PyAPPMConfiguration  # type: ignore
+from pyappm_configuration import PyAPPMConfiguration  # type: ignore
 
 from pyappm_constants import APP_TOML  # type: ignore
 from pyappm_constants import MSG_INIT_VENV  # type: ignore

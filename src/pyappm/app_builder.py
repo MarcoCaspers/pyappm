@@ -69,7 +69,7 @@ from pathlib import Path
 
 from pyappm_constants import PYAPP_EXT  # type: ignore
 
-from configuration import PyAPPMConfiguration  # type: ignore
+from pyappm_configuration import PyAPPMConfiguration  # type: ignore
 
 from pyappm_tools import run_command  # type: ignore
 from pyapp_toml import LoadAppToml  # type: ignore

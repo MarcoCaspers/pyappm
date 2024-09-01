@@ -38,7 +38,7 @@ from pathlib import Path
 from simple_toml import TomlReader, TomlWriter  # type: ignore
 from dotdict import DotDict  # type: ignore
 
-from configuration import PyAPPMConfiguration  # type: ignore
+from pyappm_configuration import PyAPPMConfiguration  # type: ignore
 
 
 def LoadAppToml(path: Path) -> DotDict:
@@ -67,7 +67,9 @@ def AppTomlGetDependencies(path: Path) -> list[tuple[str, str]]:
     return [(dep["name"], dep["extra"]) for dep in deps]
 
 
-def CreateAppToml(path: Path, app_name: str, config: PyAPPMConfiguration) -> None:
+def CreateAppToml(
+    path: Path, app_name: str, config: PyAPPMConfiguration, is_service: bool
+) -> None:
     """Write a default pyapp.toml file to the specified path."""
     if path is not None and path.exists():
         raise FileExistsError(f"File already exists: {path}")
@@ -91,11 +93,16 @@ def CreateAppToml(path: Path, app_name: str, config: PyAPPMConfiguration) -> Non
                     "description": "",
                     "authors": config.authors,
                     "requires_python": config.requires_python,
-                    "type": "application",
                     "dependencies": config.dependencies,
                 }
             ),
-            "executable": DotDict({app_name: f"{app_name}:run"}),
+            "executable": DotDict(
+                {
+                    "app_type": ("service" if is_service else config.default_app_type),
+                    "module": app_name,
+                    "function": config.default_main_function,
+                }
+            ),
         }
     )
     SaveAppToml(path, toml)

@@ -34,6 +34,7 @@
 
 
 class PyAPPMApplication:
+
     def __init__(
         self,
         name: str,
@@ -44,6 +45,9 @@ class PyAPPMApplication:
         license_file: str,
         copyright: str,
         author: str,
+        app_type: str,
+        module: str,
+        function: str,
         dependencies: list[str] = [],
     ) -> None:
         self.name: str = name
@@ -55,6 +59,9 @@ class PyAPPMApplication:
         self.description: str = description
         self.readme_file: str = readme_file
         self.dependencies: list[str] = dependencies
+        self.app_type: str = app_type
+        self.module: str = module
+        self.function: str = function
 
     def __str__(self) -> str:
         return f"{self.name} v{self.version}"

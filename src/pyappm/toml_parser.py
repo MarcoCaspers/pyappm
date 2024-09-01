@@ -37,6 +37,7 @@
 from __future__ import annotations
 from pathlib import Path
 from typing import Any, Union
+
 from toml_tokenizer import TomlToken  # type: ignore
 from dotdict import DotDict  # type: ignore
 

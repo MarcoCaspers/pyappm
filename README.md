@@ -8,7 +8,7 @@ NOTE:<br>
 This is a work in progress and not yet ready for production use.<br>
 DO NOT run the installer as root.<br><br>
 
-## Features v1.0.5
+## Features v1.0.7
 
 - Install applications from a repository
 - Install applications from a file
@@ -25,6 +25,7 @@ DO NOT run the installer as root.<br><br>
 - Manually install dependencies (requires pyapp.toml)
 - List dependencies in pyapp.toml
 - List installed dependencies in the virtual environment.
+- Set application type in pyapp.toml on init, either application (by default) or service with --service.
 
 ## Roadmap for v1.1.0
 

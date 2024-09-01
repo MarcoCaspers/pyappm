@@ -40,11 +40,12 @@ import subprocess
 
 from pathlib import Path
 
-from configuration import PyAPPMConfiguration  # type: ignore
+from pyappm_configuration import PyAPPMConfiguration  # type: ignore
 
 from dotdict import DotDict  # type: ignore
 
 from pyappm_constants import SHELL_EXE  # type: ignore
+from pyappm_constants import WHEEL_EXT
 
 from pyappm_tools import run_command  # type: ignore
 from pyappm_tools import make_dependancy_cmd
@@ -63,7 +64,7 @@ def get_dep_pkg(toml: DotDict, dep: str) -> DotDict:
 
 def parse_dep(dep: str) -> tuple[str, str, str, bool]:
     """Parse a dependency string."""
-    if ".whl" in dep:
+    if WHEEL_EXT in dep:
         output = subprocess.check_output(
             f"unzip -l -q {dep} | awk 'NR>2 {{print $NF}}' | head -n -2 ",
             shell=True,
@@ -101,10 +102,7 @@ def check_if_dep_installed(toml_path: Path, pkg_name: str) -> bool:
     toml = LoadAppToml(toml_path)
     if "dependencies" not in toml["project"]:
         return False
-    return any(
-        pkg["name"] == pkg_name or (".whl" in pkg["name"] and pkg_name in pkg["name"])
-        for pkg in toml["project"]["dependencies"]
-    )
+    return any(pkg["name"] == pkg_name for pkg in toml["project"]["dependencies"])
 
 
 def add_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) -> None:
@@ -174,6 +172,6 @@ def remove_dependency(toml_path: Path, dep: str, config: PyAPPMConfiguration) ->
     ]
     SaveAppToml(toml_path, toml)
     if pkg["wheel"] is True:
-        filename = f"{pkg['name']}*.whl"
+        filename = f"{pkg['name']}*{WHEEL_EXT}"
         run_command(f'rm {Path(pkg_path, "deps", filename)}')
     print(f"Removed {dep}")

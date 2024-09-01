@@ -35,7 +35,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from configuration import PyAPPMConfiguration  # type: ignore
+from pyappm_configuration import PyAPPMConfiguration  # type: ignore
 
 from pyappm_constants import APP_TOML  # type: ignore
 from pyappm_constants import ENV_ENVIRON  # type: ignore
@@ -116,3 +116,28 @@ def load_app_toml(name: str) -> DotDict:
     """Load the toml file for the application."""
     app_path = Path(APP_DIR, name)
     return LoadAppToml(Path(app_path, APP_TOML))
+
+
+def parse_version(version):
+    return list(map(int, version.split(".")))
+
+
+def compare_versions(left, comparator, right):
+    left_parts = parse_version(left)
+    right_parts = parse_version(right)
+    return compare_parsed_versions(left_parts, comparator, right_parts)
+
+
+def compare_parsed_versions(left_parts, comparator, right_parts):
+    if comparator == "==":
+        return left_parts == right_parts
+    elif comparator == "<=":
+        return left_parts <= right_parts
+    elif comparator == ">=":
+        return left_parts >= right_parts
+    elif comparator == "!=":
+        return left_parts != right_parts
+    elif comparator == "*":
+        return True
+    else:
+        raise ValueError(f"Unsupported comparator: {comparator}")

@@ -45,7 +45,7 @@ from __about__ import __version__  # type: ignore
 
 from pyappm_constants import APP_TOML  # type: ignore
 
-from configuration import PyAPPMConfiguration  # type: ignore
+from pyappm_configuration import PyAPPMConfiguration  # type: ignore
 
 from virtual_env import IsVirtualEnvActive  # type: ignore
 from virtual_env import DeleteVirtualEnv
@@ -61,8 +61,8 @@ from pyapp_toml import CreateAppToml
 from pyapp_toml import AppTomlListDependencies
 
 # Command implementations
-from app_init import init_pyapp  # type: ignore
-from app_init import check_if_initialized
+from pyappm_app_init import init_pyapp  # type: ignore
+from pyappm_app_init import check_if_initialized
 
 from app_dependencies import add_dependency  # type: ignore
 from app_dependencies import remove_dependency
@@ -70,9 +70,42 @@ from app_dependencies import check_if_dep_installed
 
 from app_builder import build_app  # type: ignore
 
-from app_installer import install_app  # type: ignore
-from app_installer import uninstall_app
-from app_installer import check_if_installed
+from pyappm_app_installer import install_app  # type: ignore
+from pyappm_app_installer import uninstall_app
+from pyappm_app_installer import check_if_installed
+
+from pyappm_constants import EX_FAILED_TO_LOAD_CONFIG  # type: ignore
+from pyappm_constants import EX_INVALID_COMMAND
+from pyappm_constants import EX_NO_COMMAND_SPECIFIED
+from pyappm_constants import EX_INVALID_NUMBER_OF_ARGUMENTS
+from pyappm_constants import EX_NO_DEP_SPECIFIED
+from pyappm_constants import EX_NO_APP_SPECIFIED
+from pyappm_constants import EX_INVALID_VENV_COMMAND
+from pyappm_constants import EX_INVALID_TOML_COMMAND
+from pyappm_constants import EX_INVALID_VERSION_STRING
+from pyappm_constants import EX_APP_ALREADY_INITIALIZED
+from pyappm_constants import EX_DEACTIVATE_VENV
+from pyappm_constants import EX_APP_NOT_INSTALLED
+from pyappm_constants import EX_APP_ALREADY_INSTALLED
+from pyappm_constants import EX_IS_ALREADY_INSTALLED
+from pyappm_constants import EX_IS_NOT_INSTALLED
+from pyappm_constants import EX_INVALID_DEPENDENCY
+from pyappm_constants import EX_INVALID_SERVICE_OPTION
+
+from pyappm_constants import MSG_NOAPPSINSTALLED
+from pyappm_constants import MSG_INSTALLEDAPPS
+from pyappm_constants import MSG_CREATED
+from pyappm_constants import MSG_DELETED_VENV
+from pyappm_constants import MSG_CREATED_VENV
+from pyappm_constants import MSG_VENV_NOT_ACTIVE
+from pyappm_constants import MSG_ACTIVATE_VENV
+from pyappm_constants import MSG_TOML_NOT_FOUND
+from pyappm_constants import MSG_CREATE_TOML
+from pyappm_constants import MSG_VERSION
+
+from pyappm_constants import WHEEL_EXT
+
+from pyappm_repository import PyAPPMRepositoryManager  # type: ignore
 
 
 def help() -> None:
@@ -82,31 +115,43 @@ def help() -> None:
         "Python Application Manager (pyappm) is a tool to manage Python applications and their dependencies."
     )
     print()
-    print("Usage: pyappm [command] [arguments]")
+    print("Usage: pyappm [command] [arguments] [options]")
     print()
-    print("  pyappm init [application name]     Initialize the application")
+    print("  pyappm init [application name] [--service]     Initialize the application")
     print()
-    print("  pyappm build                       Build the application")
+    print("  pyappm build                                   Build the application")
     print()
-    print("  pyappm add [dependency]            Add a dependency")
-    print("  pyappm remove [dependency]         Remove a dependency")
+    print("  pyappm add [dependency]                        Add a dependency")
+    print("  pyappm remove [dependency]                     Remove a dependency")
     print()
-    print("  pyappm install [application]       Install an application")
-    print("  pyappm uninstall [application]     Uninstall an application")
+    print("  pyappm install [application]                   Install an application")
+    print("  pyappm uninstall [application]                 Uninstall an application")
     print()
-    print("  pyappm list                        List the installed applications.")
+    print(
+        "  pyappm list                                    List the installed applications."
+    )
     print()
-    print("  pyappm version                     Show the version number")
-    print("  pyappm help                        Show this message")
+    print("  pyappm version                                 Show the version number")
+    print("  pyappm help                                    Show this message")
 
     print()
-    print("  pyappm venv create                 Create a virtual environment")
-    print("  pyappm venv delete                 Delete the virtual environment")
-    print("  pyappm venv list                   Lists installed dependencies")
-    print("  pyappm venv requirements           Installs the dependencies")
+    print(
+        "  pyappm venv create                             Create a virtual environment"
+    )
+    print(
+        "  pyappm venv delete                             Delete the virtual environment"
+    )
+    print(
+        "  pyappm venv list                               Lists installed dependencies"
+    )
+    print("  pyappm venv requirements                       Installs the dependencies")
     print()
-    print("  pyappm toml create                 Create a default pyapp.toml")
-    print("  pyappm toml list                   List the dependencies in pyapp.toml")
+    print(
+        "  pyappm toml create [--service]                 Create a default pyapp.toml"
+    )
+    print(
+        "  pyappm toml list                               List the dependencies in pyapp.toml"
+    )
     print()
     print("For more information, see the README.md file.")
 
@@ -120,6 +165,7 @@ class PaAppArgs:
     remove_local: Optional[str]
     install: Optional[str]
     uninstall: Optional[str]
+    init_as_service: bool = False
     build: bool = False
     list: bool = False
     list_deps: bool = False
@@ -143,16 +189,13 @@ def validate_args() -> None:
         "-v",
         "init",
         "--init",
+        "--service",
         "add",
         "--add",
         "-a",
-        "add_local",
-        "--add_local",
         "remove",
         "--remove",
         "-r",
-        "remove_local",
-        "--remove_local",
         "install",
         "--install",
         "-i",
@@ -173,7 +216,7 @@ def validate_args() -> None:
         "toml",
         "--toml",
     ]:
-        print(f"Invalid command: {sys.argv[1]}")
+        print(f"{EX_INVALID_COMMAND} {sys.argv[1]}")
         help()
         sys.exit(1)
 
@@ -188,48 +231,70 @@ def arg_or_default(arg: str | None, default: str | None) -> str | None:
 def parse_args() -> PaAppArgs:
     """Parse the command line arguments."""
     if len(sys.argv) < 2:
-        print("No command specified.")
+        print(EX_NO_COMMAND_SPECIFIED)
         help()
         sys.exit(1)
-    if len(sys.argv) > 3:
-        print("Invalid invalid number of arguments specified.")
+    if len(sys.argv) > 4:
+        print(EX_INVALID_NUMBER_OF_ARGUMENTS)
         help()
         sys.exit(1)
     validate_args()
-    res = PaAppArgs(None, None, None, None, None, None, None, False, False, False)
+    res = PaAppArgs(
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+    )
     cmd = sys.argv[1]
     arg = None
     if len(sys.argv) >= 3:
         arg = sys.argv[2]
     if cmd in ["version", "--version", "-v"]:
         print()
-        print(f"Python Application Manager version: {__version__}")
+        print(f"Python Application Manager {MSG_VERSION} {__version__}")
         print()
         sys.exit(0)
     if (cmd in ["help", "--help", "-h", "-?"]) or (len(sys.argv) == 1):
         help()
         sys.exit(0)
-
+    if "--service" in sys.argv and cmd not in ["init", "--init", "toml", "--toml"]:
+        print(EX_INVALID_SERVICE_OPTION)
+        sys.exit(1)
     if cmd in ["init", "--init"]:
         res.init = arg_or_default(arg, ".")
+        if "--service" in sys.argv:
+            res.init_as_service = True
     if cmd in ["add", "--add", "-a"]:
         if arg is None:  # pragma: no cover
-            print("No dependency specified.")
+            print(EX_NO_DEP_SPECIFIED)
             sys.exit(1)
         res.add = arg
     if cmd in ["remove", "--remove", "-r"]:
         if arg is None:
-            print("No dependency specified.")
+            print(EX_NO_DEP_SPECIFIED)
             sys.exit(1)
         res.remove = arg
     if cmd in ["install", "--install", "-i"]:
         if arg is None:
-            print("No application specified.")
+            print(EX_NO_APP_SPECIFIED)
             sys.exit(1)
         res.install = arg
     if cmd in ["uninstall", "--uninstall", "-u"]:
         if arg is None:
-            print("No application specified.")
+            print(EX_NO_APP_SPECIFIED)
             sys.exit(1)
         res.uninstall = arg
     if cmd in ["build", "--build", "-b"]:
@@ -248,7 +313,7 @@ def parse_args() -> PaAppArgs:
         elif arg == "list":
             res.venv_list = True
         else:
-            print(f"Invalid venv command {arg}.")
+            print(f"{EX_INVALID_VENV_COMMAND} {arg}.")
             sys.exit(1)
     if cmd in ["toml", "--toml"]:
         if arg == "create":
@@ -256,14 +321,19 @@ def parse_args() -> PaAppArgs:
         elif arg == "list":
             res.toml_list = True
         else:
-            print(f"Invalid toml command {arg}.")
+            print(f"{EX_INVALID_TOML_COMMAND} {arg}.")
             sys.exit(1)
+        if "--service" in sys.argv:
+            res.init_as_service = True
     return res
 
 
 def load_config() -> PyAPPMConfiguration:
     """Create the configuration object and execute its load function."""
     config = PyAPPMConfiguration().load()
+    if config is None:
+        print(EX_FAILED_TO_LOAD_CONFIG)
+        sys.exit(1)
     return config
 
 
@@ -286,7 +356,7 @@ def validate_version(version: str) -> str:
                 i += 1
             v.append(version[start:i])
         else:
-            print(f"Invalid version string: {version}")
+            print(f"{EX_INVALID_VERSION_STRING} {version}")
             sys.exit(1)
         i += 1
     for part in v:
@@ -298,12 +368,12 @@ def validate_version(version: str) -> str:
                 and part != "dev"
                 and part != "latest"
             ):
-                print(f"Invalid version string: {version}")
+                print(f"{EX_INVALID_VERSION_STRING} {version}")
                 sys.exit(1)
         elif part == ".":
             continue
         elif not part.isdigit():
-            print(f"Invalid version string: {version}")
+            print(f"{EX_INVALID_VERSION_STRING} {version}")
             sys.exit(1)
 
     return version
@@ -313,14 +383,14 @@ def list_installed_apps(config: PyAPPMConfiguration) -> None:
     """List the installed applications."""
     apps = create_apps_list()
     if len(apps) == 0:
-        print("No applications installed.")
+        print(MSG_NOAPPSINSTALLED)
         return
-    print("Installed applications:")
-    for app in apps:
-        app_path = config.app_dir / app
+    print(MSG_INSTALLEDAPPS)
+    for toml in apps:
+        app_path = config.app_dir / toml
         app_toml = app_path / APP_TOML
-        app = LoadAppToml(app_toml)
-        print(f"  {app.project.name} v{app.project.version}")
+        toml = LoadAppToml(app_toml)
+        print(f"  {toml['project']['name']} v{toml['project']['version']}")
 
 
 def validate_local(dep: str) -> bool:
@@ -330,61 +400,89 @@ def validate_local(dep: str) -> bool:
         return False
     if not dep_path.is_file():
         return False
-    if dep_path.suffix != ".whl":
+    if dep_path.suffix != WHEEL_EXT:
         return False
     return True
 
 
+def get_app_details(app: str) -> tuple[str, str, str]:
+    """Get the application details."""
+    name = app
+    operand = None
+    version = None
+
+    if "==" in app:
+        name, version = app.split("==")
+        operand = "=="
+    elif ">=" in app:
+        name, version = app.split(">=")
+        operand = ">="
+    elif "<=" in app:
+        name, version = app.split("<=")
+        operand = "<="
+    elif "!=" in app:
+        name, version = app.split("!=")
+        operand = "!="
+
+    if version is not None:
+        version = version.strip()
+
+    if operand is None:
+        operand = "*"
+    if version is None:
+        version = "latest"
+
+    return name.strip(), operand, version
+
+
 def main() -> None:
     config: PyAPPMConfiguration = load_config()
-
+    repo: PyAPPMRepositoryManager = PyAPPMRepositoryManager()
     args: PaAppArgs = parse_args()
     if args.init is not None:
         if check_if_initialized(args.init, config):
-            print("Application already initialized.")
+            print(EX_APP_ALREADY_INITIALIZED)
             sys.exit(1)
-        return init_pyapp(args.init, config)
+        return init_pyapp(args.init, args.init_as_service, config)
 
     if args.install is not None:
         if IsVirtualEnvActive():
-            print(
-                "Please deactivate the virtual environment before installing an application."
-            )
+            print(EX_DEACTIVATE_VENV)
             sys.exit(1)
-        version = "latest"
-        name = args.install
-        if "==" in args.install:
-            name, version = args.install.split("==")
-            version = validate_version(version)
+        name, op, version = get_app_details(args.install)
+        version = validate_version(version)
         if check_if_installed(name):
-            print(f"{name} is already installed.")
+            print(f"{name} {EX_APP_ALREADY_INSTALLED}")
             sys.exit(1)
-        return install_app(name, version, config)
+        return install_app(name=name, op=op, version=version, config=config, repo=repo)
 
     if args.uninstall is not None:
         if not check_if_installed(args.uninstall):
-            print(f"{args.uninstall} is not installed.")
+            print(f"{args.uninstall} {EX_APP_NOT_INSTALLED}")
             sys.exit(1)
         return uninstall_app(args.uninstall, config)
 
     toml_path = FindAppToml()
     venv_root_path = Path(os.getcwd()) if toml_path is None else toml_path.parent
 
+    if args.list is True:
+        return list_installed_apps(config)
+
     if args.toml_create is True:
         toml_path = Path(os.getcwd()) / APP_TOML
         app_name = Path(os.getcwd()).name
-        CreateAppToml(toml_path, app_name, config)
-        print(f"Created {APP_TOML}")
+        CreateAppToml(toml_path, app_name, config, args.init_as_service)
+        print(f"{MSG_CREATED} {APP_TOML}")
         return
 
     if args.venv_delete is True:
         DeleteVirtualEnv(venv_root_path, config)
-        print("Deleted the virtual environment.")
+        print(MSG_DELETED_VENV)
         return
 
     if args.venv_create is True:
         CreateVirtualEnv(venv_root_path, config)
-        print("Created the virtual environment.")
+        print(MSG_CREATED_VENV)
         return
 
     if args.venv_requirements is True:
@@ -397,13 +495,13 @@ def main() -> None:
         return AppTomlListDependencies(toml_path)
 
     if not IsVirtualEnvActive():
-        print("A virtual environment is not active.")
-        print("Please activate a virtual environment before removing dependencies.")
+        print(MSG_VENV_NOT_ACTIVE)
+        print(MSG_ACTIVATE_VENV)
         sys.exit(1)
 
     if toml_path is None:
-        print("pyapp.toml not found.")
-        print("Please run `pyapp --init` to create the file.")
+        print(MSG_TOML_NOT_FOUND)
+        print(MSG_CREATE_TOML)
         sys.exit(1)
 
     if args.build is True:
@@ -411,21 +509,18 @@ def main() -> None:
 
     if args.add is not None:
         if Path(args.add).is_file() and not validate_local(args.add):
-            print(f"Invalid dependency: {args.add}")
+            print(f"{EX_INVALID_DEPENDENCY} {args.add}")
             sys.exit(1)
         if check_if_dep_installed(toml_path, args.add):
-            print(f"{args.add} is already installed.")
+            print(f"{args.add} {EX_IS_ALREADY_INSTALLED}")
             sys.exit(1)
         return add_dependency(toml_path, args.add, config)
 
     if args.remove is not None:
         if not check_if_dep_installed(toml_path, args.remove):
-            print(f"{args.remove} is not installed.")
+            print(f"{args.remove} {EX_IS_NOT_INSTALLED}")
             sys.exit(1)
         return remove_dependency(toml_path, args.remove, config)
-
-    if args.list is True:
-        return list_installed_apps(config)
 
 
 if __name__ == "__main__":

@@ -42,7 +42,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 
-from configuration import PyAPPMConfiguration  # type: ignore
+from pyappm_configuration import PyAPPMConfiguration  # type: ignore
 
 from pyappm_constants import APP_TOML  # type: ignore
 
@@ -52,6 +52,8 @@ from virtual_env import CreateVirtualEnv  # type: ignore
 from dotdict import DotDict  # type: ignore
 
 from pyapp_toml import CreateAppToml  # type: ignore
+
+from pyappm_tools import run_command  # type: ignore
 
 
 def write_pyapp_py(path: Path, app_name: str, config: PyAPPMConfiguration) -> None:
@@ -80,7 +82,7 @@ if __name__ == "__main__":
         )
 
 
-def init_pyapp(path: str, config: PyAPPMConfiguration) -> None:
+def init_pyapp(path: str, is_service: bool, config: PyAPPMConfiguration) -> None:
     """Initialize the application in the specified directory."""
     EnsureVirtualEnvIsNotActive()
     pth: Path
@@ -99,6 +101,23 @@ def init_pyapp(path: str, config: PyAPPMConfiguration) -> None:
     if config.create_gitignore is True:
         print("Initializing .gitignore")
         Path(pth, ".gitignore").touch()
+        cmd_list = [
+            "echo 'dist/' > .gitignore",
+            "echo 'build/' >> .gitignore",
+            "echo 'deps/' >> .gitignore",
+            "echo 'env/' >> .gitignore",
+            "echo '__pycache__/' >> .gitignore",
+            "echo '*.pyc' >> .gitignore",
+            "echo '*.pyo' >> .gitignore",
+            "echo '*.pyd' >> .gitignore",
+            "echo '*.egg-info' >> .gitignore",
+            "echo '*.code-workspace' >> .gitignore",
+            "echo '.vscode/' >> .gitignore",
+            "echo '.mypy_cache/' >> .gitignore",
+        ]
+        for cmd in cmd_list:
+            run_command(cmd)
+
     if config.create_init is True:
         print("Initializing __init__.py")
         Path(pth, "src", app_name, "__init__.py").touch()
@@ -108,6 +127,11 @@ def init_pyapp(path: str, config: PyAPPMConfiguration) -> None:
     if config.create_typed is True:
         print("Initializing py.typed")
         Path(pth, "src", app_name, "py.typed").touch()
+    if config.create_changelog is True:
+        print("Initializing CHANGELOG.md")
+        Path(pth, "CHANGELOG.md").touch()
+        cmd = f"echo '# {app_name} Changelog' > CHANGELOG.md"
+        run_command(cmd)
     Path(pth, "tests").mkdir(exist_ok=True)
     Path(pth, "docs").mkdir(exist_ok=True)
     Path(pth, "dist").mkdir(exist_ok=True)
@@ -126,10 +150,20 @@ def init_pyapp(path: str, config: PyAPPMConfiguration) -> None:
         config,
     )
     print(f"Initializing {APP_TOML}")
-    CreateAppToml(Path(pth, APP_TOML), app_name, config)
+    CreateAppToml(Path(pth, APP_TOML), app_name, config, is_service)
     if config.create_venv:
         abs_path = Path(pth).resolve()
         CreateVirtualEnv(abs_path, config)
+    if config.run_git_init:
+        # Check if git is installed
+        cmd = "git --version"
+        result = run_command(cmd)
+        if result.returncode != 0:
+            print("Git is not installed. Skipping git init.")
+        else:
+            print("Running git init")
+            cmd = "git init"
+            run_command(cmd)
     print("Done!")
     print()
 

@@ -13,9 +13,10 @@ license="LICENSE.txt"
 description=""
 authors=[]
 requires_python=">=3.10"
-type="application"
-dependencies=[{name="fastapi", new_packages=["annotated-types", "anyio", "certifi", "click", "dnspython", "email_validator", "exceptiongroup", "fastapi-cli", "h11", "httpcore", "httptools", "httpx", "idna", "itsdangerous", "Jinja2", "markdown-it-py", "MarkupSafe", "mdurl", "orjson", "pydantic", "pydantic-extra-types", "pydantic-settings", "pydantic_core", "Pygments", "python-dotenv", "python-multipart", "PyYAML", "rich", "shellingham", "sniffio", "starlette", "typer", "typing_extensions", "ujson", "uvicorn", "uvloop", "watchfiles", "websockets"]}]
+dependencies=[]
 
 [executable]
-demo="demo:run"
+app_type="application"
+module="demo"
+function="run"
 

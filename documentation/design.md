@@ -19,21 +19,24 @@ commands:
                         init will:
                           create the directory <appname> if the <appname> is provided.
                           create pyapp.toml (with defaults)
-                          create LICENSE.txt (empty)
-                          create README.md (empty)
-                          create .gitignore (empty)
+                          create LICENSE.txt (empty) (configurable enable/disable)
+                          create README.md (empty) (configurable enable/disable)
+                          create CHANGELOG.md (empty) (configurable enable/disable)
+                          create .gitignore (with some defaults) (configurable enable/disable)
+                          create py.typed (empty) (configurable enable/disable)
+                          create __init__.py (empty) (configurable enable/disable)
                           create dist directory
                           create build directory
                           create tests directory
                           create docs directory
                           create a virtual environment                             
                           create the src/appname directory                          
-                          create __init__.py
-                          create __about__.py with boilerplate, need to edit
+                          create __about__.py with boilerplate, need to edit (configurable enable/disable)
                           create <appname>.py with boilerplate, need to edit
+                          run git init if git is installed, otherwise it will skip this step and inform the user, it is configurable enable/disable.
 
 
-                          in case the appname was not provided, it will assume that the current directory is the appname.
+                          in case the appname was not provided, it will assume that the name of the current directory is the appname.
 
 
     add <library>       add a dependency in pyapp.toml under [project] dependencies. It will also install the library in the virtual environment.
@@ -81,8 +84,19 @@ create-license        True/False flag indicating that a LICENSE.txt file should 
 create-init           True/False flag indicating that a __init__.py file should be created by init. (default: true)
 create-about          True/False flag indicating that a __about__.py file should be created by init. (default: true)
 create-typed          True/False flag indicating that a py.typed file should be created by init. (default: true)
+create-changelog      True/False flag indicating that a CHANGELOG.md file should be created by init. (default: true)
+run-git-init          True/False flag indicating that a git init should be run by init. (default: true)
 
-repository            This is the URL that pyapp should access for finding the pyapp application server.
+# Repository configuration
+
+The repository configuration is held in the repositories.txt file, it is located in the .config/pyapp directory.
+The repositories.txt file contains the following format:
+repository_name url # comment
+
+The repository_name is the name of the repository.
+The url is the url of the repository.
+The comment is optional.
+The separator between the name and the url is a space.
 
 
 # Application configuration file (pyapp.toml)

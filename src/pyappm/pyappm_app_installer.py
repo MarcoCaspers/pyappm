@@ -49,33 +49,25 @@ import urllib.parse
 from pathlib import Path
 
 from pyappm_constants import DL_CACHE  # type: ignore
-from pyappm_constants import PYAPP_EXT  # type: ignore
-from pyappm_constants import APP_TOML  # type: ignore
+from pyappm_constants import PYAPP_EXT
+from pyappm_constants import APP_TOML
+from pyappm_constants import EX_UNSUPPORTED_APP_TYPE
 
 from simple_requests import get  # type: ignore
 from simple_requests import Response  # type: ignore
 
 from pyappm_tools import run_command  # type: ignore
-from pyappm_tools import make_dependancy_cmd  # type: ignore
-from pyappm_tools import create_apps_list  # type: ignore
+from pyappm_tools import make_dependancy_cmd
+from pyappm_tools import create_apps_list
+
 
 from pyapp_toml import LoadAppToml  # type: ignore
 
 from virtual_env import CreateVirtualEnv  # type: ignore
 
-from configuration import PyAPPMConfiguration  # type: ignore
+from pyappm_configuration import PyAPPMConfiguration  # type: ignore
 
-
-def load_repo_app_list(url: str) -> list[str]:
-    """Load the list of applications from the repository."""
-    header = {"Accept": "application/json"}
-    response = get(url=f"{url}/apps/list", headers=header)
-    if response.status_code != 200:
-        print(f"Failed to load the apps list from {url}")
-        print(f"Status code:  {response.status_code}")
-        print(f"Error detail: {response.detail}")
-        return []
-    return response.json().get("apps", [])
+from pyappm_repository import PyAPPMRepositoryManager  # type: ignore
 
 
 def download_app(url: str, name: str, version: str) -> bool:
@@ -103,20 +95,27 @@ def check_dl_cache(name: str) -> bool:
 
 
 def get_from_repo_or_cache(
-    name: str, version: str, config: PyAPPMConfiguration
+    name: str,
+    op: str | None,
+    version: str,
+    repo: PyAPPMRepositoryManager,
 ) -> None:
     if not check_dl_cache(name):
         print(f"Downloading {name}...")
+        apps = repo.get_app(name, op, version)
+        if apps == []:
+            print(f"App ({name}) or version ({op} {version}) not found.")
+            sys.exit(1)
+        app = repo.get_latest_app(apps)
         downloaded = False
-        for url in config.repositories:
-            apps = load_repo_app_list(url)
-            if name in apps:
-                downloaded = download_app(url=url, name=name, version=version)
-                if downloaded:
-                    return
-                print(f"Failed to download {name}")
-                sys.exit(1)
-        print(f"{name} not found in the repositories.")
+        repo_url = app["repo"].url
+        downloaded = download_app(
+            url=repo_url, name=name, version=app["app"]["version"]
+        )
+        if downloaded:
+            return
+        print(f"Failed to download {name}")
+        sys.exit(1)
     print(f"Installing {name} from cache.")
 
 
@@ -128,21 +127,32 @@ def write_executables(name: str, config: PyAPPMConfiguration) -> None:
     executables = toml.get("executable", {})
     if len(executables) == 0:
         return
-    for exe, cmd in executables.items():
-        path = Path(app_path, "env", "bin", exe)
-        module, func = cmd.split(":")
-        with open(path, "w") as file:
-            file.write(
-                f"""#!/bin/bash
+    app_type = executables.get("app_type", "application")
+    module = executables.get("module", toml.get("project", {}).get("name", ""))
+    func = executables.get("function", "")
+    if app_type == "application":
+        write_application_executable(app_path, module, func, config)
+    else:
+        print(f"{EX_UNSUPPORTED_APP_TYPE} {app_type}")
+        sys.exit(1)
+
+
+def write_application_executable(
+    app_path: Path, module: str, func: str, config: PyAPPMConfiguration
+) -> None:
+    path = Path(app_path, "env", "bin", module)
+    with open(path, "w") as file:
+        file.write(
+            f"""#!/bin/bash
 cd {path.parent}
 source activate
 cd ../..
 ./{module}_runner $@
 """
-            )
+        )
         run_command(f"chmod +x {path}")
-        run_command(f"ln -s {path} {Path(config.bin_dir, exe)}")
-        path = Path(app_path, f"{exe}_runner")
+        run_command(f"ln -s {path} {Path(config.bin_dir, module)}")
+        path = Path(app_path, f"{module}_runner")
         with open(path, "w") as file:
             file.write(
                 f"""#!/usr/bin/env python3
@@ -178,7 +188,13 @@ def get_app_name(path: Path, config: PyAPPMConfiguration) -> str:
     return name
 
 
-def install_app(name: str, version: str, config: PyAPPMConfiguration) -> None:
+def install_app(
+    name: str,
+    op: str,
+    version: str,
+    config: PyAPPMConfiguration,
+    repo: PyAPPMRepositoryManager,
+) -> None:
     local = False
     if PYAPP_EXT in name:
         source_path = Path(name).resolve()
@@ -186,7 +202,7 @@ def install_app(name: str, version: str, config: PyAPPMConfiguration) -> None:
         local = True
     if local is False:
         source_path = Path(DL_CACHE, f"{name}{PYAPP_EXT}")
-        get_from_repo_or_cache(name, version, config)
+        get_from_repo_or_cache(name=name, op=op, version=version, repo=repo)
         if not (source_path.exists() and source_path.stat().st_size > 0):
             print(f"Failed to retrieve from cache or repository {name}")
             sys.exit(1)

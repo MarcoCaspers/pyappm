@@ -13,9 +13,10 @@ license="LICENSE.txt"
 description=""
 authors=[]
 requires_python=">=3.10"
-type="application"
 dependencies=[]
 
 [executable]
-d2="d2:run"
+app_type="service"
+module="d2"
+function="run"
 
