@@ -22,3 +22,5 @@ before:
 
 - Bugfix, removed repository from PyAPPMConfiguration because it's fully handled by PyAPPMRepositoryManager.
 - Bugfix, fixed path for repository file to expand user.
+- Bugfix, PyAPPMRepositoryManager, init now correctly loads repositories from file without complaining about repositories already existing.
+- Removed repositories as a parameter in init of PyAPPMRepositoryManager.

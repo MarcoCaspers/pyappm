@@ -59,13 +59,12 @@ DEFAULT_REPOSITORIES: list[PyAPPMRepository] = [
 
 
 class PyAPPMRepositoryManager:
-    def __init__(
-        self, repositories: list[PyAPPMRepository] = DEFAULT_REPOSITORIES
-    ) -> None:
-        self.repositories: list[PyAPPMRepository] = repositories
+    def __init__(self) -> None:
+        self.repositories: list[PyAPPMRepository] = []
         if REPOSITORY_PATH.exists():
             self.load_repository_file(REPOSITORY_PATH)
         else:
+            self.repositories = DEFAULT_REPOSITORIES
             self.save_repository_file(REPOSITORY_PATH)
 
     def __repo_exists__(self, name: str) -> bool:
