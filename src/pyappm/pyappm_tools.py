@@ -74,6 +74,13 @@ def run_command(command: str) -> None:
     subprocess.call(command, shell=True, executable=SHELL_EXE)
 
 
+def run_command_output(command: str) -> str:
+    """Run a command in a subprocess and return the output."""
+    return subprocess.check_output(command, shell=True, executable=SHELL_EXE).decode(
+        "utf-8"
+    )
+
+
 def make_dependancy_cmd(
     path: Path, config: PyAPPMConfiguration, cmd: str, dep: str
 ) -> str:

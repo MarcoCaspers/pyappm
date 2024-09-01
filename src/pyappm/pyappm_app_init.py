@@ -42,7 +42,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 import sys
-import subprocess
+import shutil
 
 from pyappm_configuration import PyAPPMConfiguration  # type: ignore
 
@@ -56,29 +56,26 @@ from dotdict import DotDict  # type: ignore
 from pyapp_toml import CreateAppToml  # type: ignore
 
 from pyappm_tools import run_command  # type: ignore
+from pyappm_tools import run_command_output  # type: ignore
+
+
+def print_install_dependencies() -> None:
+    """Print the dependencies required to install PyAPPM."""
+    print("Please install pip3 and venv to continue.")
+    print("To install pip3, run: sudo apt install python3-pip")
+    print("To install venv, run: sudo apt install python3-venv")
+    sys.exit(404)
 
 
 def check_dependencies():
-    try:
-        # Check if pip3 is installed
-        subprocess.run(
-            ["pip3", "--version"],
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        # Check if venv is installed
-        subprocess.run(
-            ["python3", "-m", "venv", "--version"],
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-    except subprocess.CalledProcessError:
-        print("Please install pip3 and venv to continue.")
-        print("To install pip3, run: sudo apt install python3-pip")
-        print("To install venv, run: sudo apt install python3-venv")
-        sys.exit(404)
+    # Check if pip3 is installed
+    if shutil.which("pip3") is None:
+        print_install_dependencies()
+
+    # Check if venv is installed
+    output = run_command_output("python3 -m pip freeze")
+    if "virtualenv" not in output:
+        print_install_dependencies()
 
 
 def write_pyapp_py(path: Path, app_name: str, config: PyAPPMConfiguration) -> None:
@@ -109,8 +106,8 @@ if __name__ == "__main__":
 
 def init_pyapp(path: str, is_service: bool, config: PyAPPMConfiguration) -> None:
     """Initialize the application in the specified directory."""
-    check_dependencies()
     EnsureVirtualEnvIsNotActive()
+    check_dependencies()  # Check if pip3 and venv are installed but only if no virtual environment is active.
     pth: Path
     if path == ".":
         pth = Path(os.getcwd())
