@@ -36,6 +36,7 @@
 
 import os
 import sys
+import subprocess
 
 from pathlib import Path
 
@@ -52,9 +53,6 @@ from pyappm_constants import MSG_VENV_ALREADY_EXISTS  # type: ignore
 
 from pyapp_toml import LoadAppToml  # type: ignore
 from pyapp_toml import AppTomlGetDependencies
-
-from pyappm_tools import run_command  # type: ignore
-from pyappm_tools import run_command_output  # type: ignore
 
 
 def GetEnvName(path: Path, config: PyAPPMConfiguration) -> str:
@@ -104,9 +102,11 @@ def GetVirtualEnvInstalledPackages(
         sys.exit(1)
     envpath = GetVirtualEnvPath(path, config)
     lib_installer = config.env_lib_installer_tool
-    output = run_command_output(
-        f"cd {envpath}; source activate; {lib_installer} freeze"
-    )
+    output = subprocess.check_output(
+        f"cd {envpath}; source activate; {lib_installer} freeze",
+        shell=True,
+        executable=SHELL_EXE,
+    ).decode("utf-8")
     lst = output.split("\n")
     plst = [pkg.split("==")[0] for pkg in lst]  # remove the version number
     return [
@@ -140,7 +140,7 @@ def CreateVirtualEnv(
         f"cd {envpath}; source activate; {lib_installer} install --upgrade pip setuptools virtualenv> /dev/null 2>&1",
     ]
     for cmd in commands:
-        run_command(cmd)
+        subprocess.call(cmd, shell=True, executable=SHELL_EXE)
 
 
 def DeleteVirtualEnv(path: Path, config: PyAPPMConfiguration) -> None:
@@ -150,7 +150,7 @@ def DeleteVirtualEnv(path: Path, config: PyAPPMConfiguration) -> None:
         print(MSG_VENV_NOT_FOUND)
         sys.exit(1)
     cmd = f"rm -rf {GetVirtualEnvPath(path, config).parent}"
-    run_command(cmd)
+    subprocess.call(cmd, shell=True, executable=SHELL_EXE)
 
 
 def VirtualEnvInstallDependencies(path: Path, config: PyAPPMConfiguration) -> None:
@@ -170,7 +170,7 @@ def VirtualEnvInstallDependencies(path: Path, config: PyAPPMConfiguration) -> No
         if len(req[1]) > 0:
             dep = f"{dep}[{req[1]}]"
         cmd = f"cd {envpath}; source activate; {lib_installer} install {dep} > /dev/null 2>&1"
-        run_command(cmd)
+        subprocess.call(cmd, shell=True, executable=SHELL_EXE)
     print("Dependencies installed.")
 
 
@@ -181,9 +181,12 @@ def VirtualEnvListDependencies(path: Path, config: PyAPPMConfiguration) -> None:
         sys.exit(1)
     envpath = GetVirtualEnvPath(path, config)
     lib_installer = config.env_lib_installer_tool
-    output = run_command_output(
+    output = subprocess.check_output(
         f"cd {envpath}; source activate; {lib_installer} freeze",
-    )
+        shell=True,
+        executable=SHELL_EXE,
+    ).decode("utf-8")
+
     if output == "":
         print("No packages installed.")
         return
