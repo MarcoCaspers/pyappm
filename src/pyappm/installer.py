@@ -44,6 +44,7 @@ import shutil
 import subprocess
 
 from pathlib import Path
+import os
 
 # Define the download URL of the pyappm application for the installer to download
 DOWNLOAD_URL = "https://pyappm.nl/downloads/pyappm.zip"
@@ -89,7 +90,7 @@ def uninstall_pyapp() -> None:
 
 def print_info() -> None:
     """Print the Pyapp information."""
-    print(f"Pyapp Installer v1.0.0")
+    print(f"Pyapp Installer v1.0.8")
     print()
     print(f"Author: Marco Caspers")
     print(f"Copyright 2024 Marco Caspers")
@@ -179,7 +180,7 @@ def download_pyapp() -> None:
     rm_rf(TMP_DIR)
 
 
-def install_pyapp() -> None:
+def install_pyapp(add_bin_dir: bool) -> None:
     """Install the Pyapp application."""
     print(f"Installing Pyappm application")
     # perform the installation pre-requisites checks
@@ -196,7 +197,31 @@ def install_pyapp() -> None:
     with open(BIN_DIR / EXE_NAME, "w") as f:
         f.write(f'#!/bin/bash\n{INSTALL_DIR}/{EXE_NAME} "$@"')
     (BIN_DIR / EXE_NAME).chmod(0o755)
+
+    if add_bin_dir and not is_bin_dir_in_path():
+        add_bin_dir_to_bashrc()
+        print("Added ~/.local/bin to the PATH environment variable.")
+        print("Please restart your shell to apply the changes.")
+        print("You can also run the following command to apply the changes:")
+        print("source ~/.bashrc")
+
     print("Pyappm installation complete!")
+
+
+def is_bin_dir_in_path() -> bool:
+    """Check if ~/.local/bin is in the PATH environment variable."""
+    bin_dir = os.path.expanduser("~/.local/bin")
+    path = os.getenv("PATH")
+    if path is None:
+        return False
+    return bin_dir in path.split(":")
+
+
+def add_bin_dir_to_bashrc() -> None:
+    """Add ~/.local/bin to .bashrc if it is not already present."""
+    bashrc_path = os.path.expanduser("~/.bashrc")
+    with open(bashrc_path, "a") as f:
+        f.write(f'\nexport PATH="$PATH:{BIN_DIR}"\n')
 
 
 def usage() -> None:
@@ -215,7 +240,10 @@ def main() -> None:
         usage()
         sys.exit(1)
     if sys.argv[1] == "install":
-        install_pyapp()
+        add_bin_dir = True
+        if "--no-path" in sys.argv:
+            add_bin_dir = False
+        install_pyapp(add_bin_dir)
     elif sys.argv[1] == "uninstall":
         uninstall_pyapp()
     else:
