@@ -99,7 +99,7 @@ def get_list_diff(
 
 
 def create_apps_list() -> list[str]:
-    """Get the installed applications from the repository."""
+    """Get the installed applications from the application directory."""
     apps: list[str] = []
     path_to_check = Path(os.path.expanduser(APP_DIR))
     if not path_to_check.exists():

@@ -43,9 +43,7 @@ from pyappm_constants import BIN_DIR  # type: ignore
 from pyappm_constants import APP_DIR  # type: ignore
 from pyappm_constants import TMP_DIR  # type: ignore
 from pyappm_constants import CFG_DIR  # type: ignore
-from pyappm_constants import REPOSITORY_URLS  # type: ignore
 from pyappm_constants import CONFIG_FILE_NAME  # type: ignore
-
 
 from pyappm_app_model import PyAPPMApplication  # type: ignore
 
@@ -58,7 +56,6 @@ class PyAPPMConfiguration:
         self.bin_dir: Path = BIN_DIR
         self.app_dir: Path = APP_DIR
         self.temp_dir: Path = TMP_DIR
-        self.repositories: list[str] = REPOSITORY_URLS
         # ---
         self.applications: list[PyAPPMApplication] = []
         self.env_create_tool: str = "python3 -m venv"
@@ -112,7 +109,6 @@ class PyAPPMConfiguration:
         # Load the configuration
         cfg = config["pyappm"]
         self.temp_dir = Path(cfg.get("temp_dir", str(self.temp_dir)))
-        self.repositories = cfg.get("repositories", self.repositories)
         self.env_create_tool = cfg.get("env_create_tool", self.env_create_tool)
         self.env_activate_tool = cfg.get("env_activate_tool", self.env_activate_tool)
         self.env_deactivate_tool = cfg.get(
@@ -173,7 +169,6 @@ class PyAPPMConfiguration:
         config["pyappm"] = DotDict(
             {
                 "temp_dir": str(self.temp_dir),
-                "repositories": self.repositories,
                 "env_create_tool": self.env_create_tool,
                 "env_activate_tool": self.env_activate_tool,
                 "env_deactivate_tool": self.env_deactivate_tool,
