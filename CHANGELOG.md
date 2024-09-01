@@ -27,3 +27,4 @@ before:
 - Added dependency check to app init, it now checks for pip3 and venv, if not it tells the user to install them and exits with error 404.
 - Bugfix for creating CHANGELOG.md and .gitignore, they now are created in the correct directory.
 - Added a check for the repository file in PyAPPMRepositoryManager, if it doesn't exist it creates it with the default repository list.
+- Assume people have venv installed.

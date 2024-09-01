@@ -72,10 +72,7 @@ def check_dependencies():
     if shutil.which("pip3") is None:
         print_install_dependencies()
 
-    # Check if venv is installed
-    output = run_command_output("python3 -m pip freeze")
-    if "virtualenv" not in output:
-        print_install_dependencies()
+    # we assume people listen and have venv installed.
 
 
 def write_pyapp_py(path: Path, app_name: str, config: PyAPPMConfiguration) -> None:

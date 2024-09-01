@@ -37,7 +37,7 @@ DO NOT run the installer as root.<br><br>
 
 ## Dependencies
 
-- Python 3.10 or higher
+- Python 3.10 or higher with pip3 and venv installed (you can configure these tools in the configuration afterwards)
 - wget
 - unzip<br><br>
 
