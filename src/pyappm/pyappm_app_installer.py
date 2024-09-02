@@ -185,6 +185,7 @@ def get_app_name(path: Path, config: PyAPPMConfiguration) -> str:
     if name == "":
         print(f"Failed to get the application name from {path}")
         sys.exit(1)
+    run_command(f"rm -f {Path(config.temp_dir, APP_TOML)}")
     return name
 
 
