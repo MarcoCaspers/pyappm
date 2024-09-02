@@ -90,7 +90,7 @@ def uninstall_pyapp() -> None:
 
 def print_info() -> None:
     """Print the Pyapp information."""
-    print(f"Pyapp Installer v1.0.8")
+    print(f"Pyapp Installer v1.0.9")
     print()
     print(f"Author: Marco Caspers")
     print(f"Copyright 2024 Marco Caspers")
@@ -135,6 +135,24 @@ def check_dependencies() -> None:
     else:
         print(f"Error: Unsupported operating system {os.name}!")
         sys.exit(1)
+
+
+def check_python3_venv() -> None:
+    """Check if the Python3 venv module is installed."""
+    try:
+        output = subprocess.check_output(
+            "dpkg -l | grep python3-venv", shell=True, executable="/bin/bash"
+        ).decode("utf-8")
+        if output is None or output == "":
+            print("Error: Python3 venv module is not installed!")
+            print("Please install the Python3 venv module using the following command:")
+            print("sudo apt-get install python3-venv")
+            sys.exit(404)
+    except subprocess.CalledProcessError:
+        print("Error: Python3 venv module is not installed!")
+        print("Please install the Python3 venv module using the following command:")
+        print("sudo apt-get install python3-venv")
+        sys.exit(404)
 
 
 def setup_directories() -> None:
@@ -187,7 +205,7 @@ def install_pyapp(add_bin_dir: bool) -> None:
     check_if_root_or_sudo()
     check_mimimum_python_version()
     check_dependencies()
-
+    check_python3_venv()
     # setup the Pyapp directories
     setup_directories()
 
@@ -253,4 +271,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    check_python3_venv()
