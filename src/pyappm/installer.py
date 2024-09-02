@@ -68,8 +68,8 @@ CFG_DIR = Path("~/.config/pyappm").expanduser()
 MINIMUM_PYTHON_VERSION = (3, 10)
 
 # Define the Linux/Windows dependencies
-LINUX_DEPENDENCIES = ["wget", "unzip"]
-WINDOWS_DEPENDENCIES = ["wget.exe", "unzip.exe"]
+LINUX_DEPENDENCIES = ["wget", "unzip", "zip", "python3", "pip3"]
+WINDOWS_DEPENDENCIES = ["wget.exe", "unzip.exe", "zip.exe"]
 
 # Define the path to the pyappm temporary directory for the installer
 TMP_DIR = Path("/tmp/pyappm")

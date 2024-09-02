@@ -28,3 +28,13 @@ before:
 - Bugfix for creating CHANGELOG.md and .gitignore, they now are created in the correct directory.
 - Added a check for the repository file in PyAPPMRepositoryManager, if it doesn't exist it creates it with the default repository list.
 - Assume people have venv installed.
+
+TODO:
+Fix the bug in the installer where it doesn't properly detect if zip is installed.
+Fix the bug in the app installer where it adds the repository?
+Fix the bug in the app installer where it fails after unzipping the app file.
+
+## [1.0.9] - 2024-09-03
+
+- Bugfix installer.py, fixed bug where it did not check for zip to be installed.
+- Added python3 and pip to the list of dependencies to check for.
