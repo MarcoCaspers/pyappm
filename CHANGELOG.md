@@ -39,3 +39,5 @@ Fix the bug in the app installer where it fails after unzipping the app file.
 - Bugfix installer.py, fixed bug where it did not check for zip to be installed.
 - Added python3 and pip to the list of dependencies to check for.
 - Added a check for venv in the installer.
+- fixed bug in installer where it didn't install the app correctly after unzipping the app file. (cause: wrong path for pyapp.toml)
+- fixed bug where "added repository" message was shown when loading the repository file.

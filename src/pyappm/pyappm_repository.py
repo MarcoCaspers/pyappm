@@ -96,13 +96,14 @@ class PyAPPMRepositoryManager:
         for repo in self.repositories:
             print(f"  {repo.name}: {repo.url}")
 
-    def add_repository(self, name: str, url: str) -> None:
+    def add_repository(self, name: str, url: str, verbose: bool = True) -> None:
         """Add a repository."""
         if self.__repo_exists__(name):
             print(f"Repository {name}: {url} already exists.")
             return
         self.repositories.append(PyAPPMRepository(name, url))
-        print(f"Repository {name}: {url} added.")
+        if verbose:
+            print(f"Repository {name}: {url} added.")
 
     def remove_repository(self, name: str) -> None:
         """Remove a repository."""
@@ -166,7 +167,7 @@ class PyAPPMRepositoryManager:
                 if len(parts) != 2:
                     print(f"Invalid repository line: {line}")
                     continue
-                self.add_repository(parts[0], parts[1])
+                self.add_repository(parts[0], parts[1], False)
 
     def save_repository_file(self, filename: Path) -> None:
         """Save the repository file."""

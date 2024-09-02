@@ -212,7 +212,8 @@ def install_app(
     # Unzip the application to the install path
     run_command(f"unzip {source_path} -d {install_path}")
     # Read the application toml file
-    data = LoadAppToml(name)
+    toml_path = Path(install_path, APP_TOML)
+    data = LoadAppToml(toml_path)
 
     # create the virtual environment
     CreateVirtualEnv(
