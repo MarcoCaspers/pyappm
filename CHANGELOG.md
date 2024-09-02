@@ -42,3 +42,4 @@ Fix the bug in the app installer where it fails after unzipping the app file.
 - fixed bug in installer where it didn't install the app correctly after unzipping the app file. (cause: wrong path for pyapp.toml)
 - fixed bug where "added repository" message was shown when loading the repository file.
 - fixed bug where pyappm.toml was left dangling in /tmp/pyappm after installation.
+- Updated makefile to add CHANGELOG.md to the list of files to be zipped in the distribution package.
