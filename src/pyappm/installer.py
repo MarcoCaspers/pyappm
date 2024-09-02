@@ -146,12 +146,12 @@ def check_python3_venv() -> None:
         if output is None or output == "":
             print("Error: Python3 venv module is not installed!")
             print("Please install the Python3 venv module using the following command:")
-            print("sudo apt-get install python3-venv")
+            print("sudo apt install python3-venv")
             sys.exit(404)
     except subprocess.CalledProcessError:
         print("Error: Python3 venv module is not installed!")
         print("Please install the Python3 venv module using the following command:")
-        print("sudo apt-get install python3-venv")
+        print("sudo apt install python3-venv")
         sys.exit(404)
 
 
@@ -271,5 +271,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # main()
-    check_python3_venv()
+    main()
