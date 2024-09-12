@@ -40,6 +40,8 @@ from simple_requests import Response
 from pyappm_tools import compare_parsed_versions  # type: ignore
 from pyappm_tools import parse_version
 
+from pyappm_repository_client import PyappmRepositoryClient  # type: ignore
+
 REPOSITORY_FILE = "repositories.txt"
 REPOSITORY_PATH = Path(f"~/.config/pyappm/{REPOSITORY_FILE}").expanduser()
 
@@ -73,13 +75,10 @@ class PyAPPMRepositoryManager:
     def __repo_by_name__(self, name: str) -> PyAPPMRepository:
         return next(repo for repo in self.repositories if repo.name == name)
 
-    def __repo_get_app_list__(self, repo: PyAPPMRepository) -> list[pyappm_app_version]:
-        """Load the list of applications from a repository."""
-        apps: list[dict[str, str]] = []
-        header = {"Accept": "application/json"}
-        response: Response = get(url=f"{repo.url}/apps/list", headers=header)
-        if response.status_code != 200:
-            return apps
+    def __get_apps_from_response__(
+        self, response: Response
+    ) -> list[pyappm_app_version]:
+        apps: list[pyappm_app_version] = []
         data = response.json
         if data is None:
             return apps
@@ -89,6 +88,15 @@ class PyAPPMRepositoryManager:
             app["version"] = parse_version(app["version"])
             apps.append(app)
         return apps
+
+    def __repo_get_app_list__(self, repo: PyAPPMRepository) -> list[pyappm_app_version]:
+        """Load the list of applications from a repository."""
+        apps: list[dict[str, str]] = []
+        with PyappmRepositoryClient(url=repo.url) as client:
+            response: Response = client.apps_list()
+        if response.status_code != 200:
+            return apps
+        return self.__get_apps_from_response__(response)
 
     def list_repositories(self) -> None:
         """List the available repositories."""
@@ -129,7 +137,11 @@ class PyAPPMRepositoryManager:
         self, name: str, op: str | None, version: str | None
     ) -> list[pyappm_repo_app_version]:
         """Get the application from the repository."""
-        apps = self.get_applications_list()
+        with PyappmRepositoryClient() as client:
+            apps = client.apps_find(name)
+        if apps.status_code != 200:
+            return []
+        apps = self.__get_apps_from_response__(apps)
         if op is None:
             op = "*"  # default to any version
         if version is None:

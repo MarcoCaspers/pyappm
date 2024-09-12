@@ -43,3 +43,8 @@ Fix the bug in the app installer where it fails after unzipping the app file.
 - fixed bug where "added repository" message was shown when loading the repository file.
 - fixed bug where pyappm.toml was left dangling in /tmp/pyappm after installation.
 - Updated makefile to add CHANGELOG.md to the list of files to be zipped in the distribution package.
+  
+## [1.1.0] - 2024-09-11
+
+- Moved all the repository client functionality into pyappm_repository_client.py.
+- PyAPPMRepositoryClient class to handle repository api connection functionality.
