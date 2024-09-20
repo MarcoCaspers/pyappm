@@ -38,14 +38,40 @@ from dotdict import DotDict  # type: ignore
 from simple_toml import TomlReader, TomlWriter  # type: ignore
 from pathlib import Path
 
-from pyappm_constants import INSTALL_DIR  # type: ignore
-from pyappm_constants import BIN_DIR  # type: ignore
-from pyappm_constants import APP_DIR  # type: ignore
-from pyappm_constants import TMP_DIR  # type: ignore
-from pyappm_constants import CFG_DIR  # type: ignore
-from pyappm_constants import CONFIG_FILE_NAME  # type: ignore
+from pyappm_constants import INSTALL_DIR
+from pyappm_constants import BIN_DIR
+from pyappm_constants import APP_DIR
+from pyappm_constants import TMP_DIR
+from pyappm_constants import CFG_DIR
+from pyappm_constants import CONFIG_FILE_NAME
 
-from pyappm_app_model import PyAPPMApplication  # type: ignore
+from pyappm_app_model import PyAPPMApplication
+
+from pyappm_license_texts import MIT_LICENSE_TEXT
+
+DEFAULT_CONFIG_CREATE_INIT = False
+DEFAULT_CONFIG_CREATE_PYTYPED = False
+DEFAULT_CONFIG_CREATE_GITIGNORE = False
+DEFAULT_CONFIG_RUN_GIT_INIT = False
+
+DEFAULT_CONFIG_CREATE_VENV = True
+DEFAULT_CONFIG_CREATE_CHANGELOG = True
+DEFAULT_CONFIG_CREATE_ABOUT = True
+DEFAULT_CONFIG_CREATE_LICENSE = True
+DEFAULT_CONFIG_CREATE_README = True
+
+DEFAULT_CONFIG_LICENSE_TEXT = MIT_LICENSE_TEXT
+
+DEFAULT_CONFIG_ENV_CREATE_TOOL = "python3 -m venv"
+DEFAULT_CONFIG_ENV_ACTIVATE_TOOL = "source bin/activate"
+DEFAULT_CONFIG_ENV_DEACTIVATE_TOOL = "deactivate"
+DEFAULT_CONFIG_ENV_NAME = "env"
+DEFAULT_CONFIG_DEFAULT_APP_TYPE = "application"
+DEFAULT_CONFIG_DEFAULT_MAIN_FUNCTION_NAME = "main"
+DEFAULT_CONFIG_LIB_INSTALLER_TOOL = "pip3 install"
+DEFAULT_CONFIG_REQUIRE_PYTHON = ">=3.10"
+DEFAULT_CONFIG_DEFAULT_APP_VERSION = "0.1.0"
+DEFAULT_CONFIG_DEFAULT_DEPENDENCIES: list[str] = []
 
 
 class PyAPPMConfiguration:
@@ -58,26 +84,27 @@ class PyAPPMConfiguration:
         self.temp_dir: Path = TMP_DIR
         # ---
         self.applications: list[PyAPPMApplication] = []
-        self.env_create_tool: str = "python3 -m venv"
-        self.env_activate_tool: str = "source bin/activate"
-        self.env_deactivate_tool: str = "deactivate"
-        self.default_env_name: str = "env"
-        self.default_app_type: str = "application"
-        self.default_main_function: str = "run"
-        self.env_lib_installer_tool: str = "python3 -m pip"
-        self.requires_python: str = ">=3.10"
-        self.default_app_version: str = "0.1.0"
+        self.env_create_tool: str = DEFAULT_CONFIG_ENV_CREATE_TOOL
+        self.env_activate_tool: str = DEFAULT_CONFIG_ENV_ACTIVATE_TOOL
+        self.env_deactivate_tool: str = DEFAULT_CONFIG_ENV_DEACTIVATE_TOOL
+        self.default_env_name: str = DEFAULT_CONFIG_ENV_NAME
+        self.default_app_type: str = DEFAULT_CONFIG_DEFAULT_APP_TYPE
+        self.default_main_function: str = DEFAULT_CONFIG_DEFAULT_MAIN_FUNCTION_NAME
+        self.env_lib_installer_tool: str = DEFAULT_CONFIG_LIB_INSTALLER_TOOL
+        self.requires_python: str = DEFAULT_CONFIG_REQUIRE_PYTHON
+        self.default_app_version: str = DEFAULT_CONFIG_DEFAULT_APP_VERSION
         self.authors: list[dict[str, str]] = []
-        self.dependencies: list[str] = []
-        self.create_venv: bool = True
-        self.create_license: bool = True
-        self.create_readme: bool = True
-        self.create_changelog: bool = True
-        self.create_init: bool = False
-        self.create_about: bool = True
-        self.create_typed: bool = False
-        self.create_gitignore: bool = False
-        self.run_git_init: bool = False
+        self.dependencies: list[str] = DEFAULT_CONFIG_DEFAULT_DEPENDENCIES
+        self.create_venv: bool = DEFAULT_CONFIG_CREATE_VENV
+        self.create_license: bool = DEFAULT_CONFIG_CREATE_LICENSE
+        self.create_readme: bool = DEFAULT_CONFIG_CREATE_README
+        self.create_changelog: bool = DEFAULT_CONFIG_CREATE_CHANGELOG
+        self.create_init: bool = DEFAULT_CONFIG_CREATE_INIT
+        self.create_about: bool = DEFAULT_CONFIG_CREATE_ABOUT
+        self.create_typed: bool = DEFAULT_CONFIG_CREATE_PYTYPED
+        self.create_gitignore: bool = DEFAULT_CONFIG_CREATE_GITIGNORE
+        self.run_git_init: bool = DEFAULT_CONFIG_RUN_GIT_INIT
+        self.license_text: str = DEFAULT_CONFIG_LICENSE_TEXT
 
     @staticmethod
     def default() -> PyAPPMConfiguration:
@@ -147,17 +174,25 @@ class PyAPPMConfiguration:
                 continue
             app: PyAPPMApplication = PyAPPMApplication(
                 name=config[section].get("name", None),
-                version=config[section].get("version", "0.1.0"),
+                version=config[section].get(
+                    "version", DEFAULT_CONFIG_DEFAULT_APP_VERSION
+                ),
                 description=config[section].get("description", None),
                 readme_file=config[section].get("readme_file", "README.md"),
                 license=config[section].get("license", None),
                 license_file=config[section].get("license_file", "LICENSE.txt"),
                 copyright=config[section].get("copyright", None),
                 author=config[section].get("author", None),
-                app_type=config[section].get("app_type", "application"),
+                app_type=config[section].get(
+                    "app_type", DEFAULT_CONFIG_DEFAULT_APP_TYPE
+                ),
                 module=config[section].get("module", None),
-                function=config[section].get("function", "run"),
-                dependencies=config[section].get("dependencies", []),
+                function=config[section].get(
+                    "function", DEFAULT_CONFIG_DEFAULT_MAIN_FUNCTION_NAME
+                ),
+                dependencies=config[section].get(
+                    "dependencies", DEFAULT_CONFIG_DEFAULT_DEPENDENCIES
+                ),
             )
             self.applications.append(app)
 

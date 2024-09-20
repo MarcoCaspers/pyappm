@@ -102,7 +102,7 @@ def get_from_repo_or_cache(
 ) -> None:
     if not check_dl_cache(name):
         print(f"Downloading {name}...")
-        apps = repo.get_app(name, op, version)
+        apps = repo.find_app(name, op, version)
         if apps == []:
             print(f"App ({name}) or version ({op} {version}) not found.")
             sys.exit(1)

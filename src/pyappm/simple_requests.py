@@ -151,6 +151,111 @@ def post(
     )
 
 
+def put(
+    url,
+    data=None,
+    headers=None,
+    params=None,
+    verify: bool = True,
+    timeout: float = 10.0,
+) -> Response:
+    return Response(
+        url,
+        data=data,
+        method="PUT",
+        headers=headers,
+        params=params,
+        verify=verify,
+        timeout=timeout,
+    )
+
+
+def delete(
+    url,
+    data=None,
+    headers=None,
+    params=None,
+    verify: bool = True,
+    timeout: float = 10.0,
+) -> Response:
+    return Response(
+        url,
+        data=data,
+        method="DELETE",
+        headers=headers,
+        params=params,
+        verify=verify,
+        timeout=timeout,
+    )
+
+
+class Session:
+    def __init__(self):
+        self._session = {}
+
+    def get(
+        self, url, headers=None, params=None, verify: bool = True, timeout: float = 10.0
+    ):
+        return get(url, headers=headers, params=params, verify=verify, timeout=timeout)
+
+    def post(
+        self,
+        url,
+        data=None,
+        headers=None,
+        params=None,
+        verify: bool = True,
+        timeout: float = 10.0,
+    ):
+        return post(
+            url,
+            data=data,
+            headers=headers,
+            params=params,
+            verify=verify,
+            timeout=timeout,
+        )
+
+    def put(
+        self,
+        url,
+        data=None,
+        headers=None,
+        params=None,
+        verify: bool = True,
+        timeout: float = 10.0,
+    ):
+        return put(
+            url,
+            data=data,
+            headers=headers,
+            params=params,
+            verify=verify,
+            timeout=timeout,
+        )
+
+    def delete(
+        self,
+        url,
+        data=None,
+        headers=None,
+        params=None,
+        verify: bool = True,
+        timeout: float = 10.0,
+    ):
+        return delete(
+            url,
+            data=data,
+            headers=headers,
+            params=params,
+            verify=verify,
+            timeout=timeout,
+        )
+
+    def close(self):
+        pass
+
+
 # Example usage
 if __name__ == "__main__":
     # Mimicking requests.get with headers

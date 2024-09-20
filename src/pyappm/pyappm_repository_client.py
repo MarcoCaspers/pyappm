@@ -33,16 +33,16 @@
 # This module provides the functions for handling the pyappm repository client connection.
 
 from pathlib import Path
-from requests import session, Response  # type: ignore
+from simple_requests import Session, Response  # type: ignore
 
-# BASE_URL = "https://pyappm.nl/v1/api"
-BASE_URL = "http://localhost:8000/v1/api"  # for testing
+BASE_URL = "https://pyappm.nl/api/v1"
+# BASE_URL = "http://localhost:8000/api/v1"  # for testing
 
 
 class PyappmRepositoryClient:
     def __init__(self, url: str = BASE_URL) -> None:
         self.url: str = url
-        self.session = session()
+        self.session = Session()
 
     # Don't call the below methods directly
 
@@ -156,14 +156,14 @@ class PyappmRepositoryClient:
 
     # apps methods
 
-    def apps_list(self, token: str) -> Response:
-        return self._get("apps/list", token=token, params=None)
+    def apps_list(self) -> Response:
+        return self._get("apps/list", token=None, params=None)
 
-    def apps_get(self, token: str, app_id: str) -> Response:
-        return self._get(f"apps/{app_id}", token=token, params=None)
+    def apps_get(self, app_id: str) -> Response:
+        return self._get(f"apps/id/{app_id}", token=None, params=None)
 
-    def apps_find(self, token: str, app: str) -> Response:
-        return self._get(f"apps/find/{app}", token=token, params=None)
+    def apps_find(self, app: str) -> Response:
+        return self._get(f"apps/find/{app}", token=None, params=None)
 
     # admin user functions
 

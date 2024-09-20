@@ -96,6 +96,7 @@ EX_APP_NOT_INSTALLED = "Application not installed."
 EX_INVALID_DEPENDENCY = "Invalid dependency:"
 EX_IS_ALREADY_INSTALLED = "is already installed."
 EX_IS_NOT_INSTALLED = "is not installed."
+EX_APP_NOT_FOUND = "Application not found in any repository."
 
 EX_UNSUPPORTED_APP_TYPE = "Unsupported app_type:"
 

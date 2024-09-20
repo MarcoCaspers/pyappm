@@ -48,3 +48,13 @@ Fix the bug in the app installer where it fails after unzipping the app file.
 
 - Moved all the repository client functionality into pyappm_repository_client.py.
 - PyAPPMRepositoryClient class to handle repository api connection functionality.
+
+## [1.1.1] - 2024-09-20
+
+- Renamed app_installer.py to pyappm_app_installer.py.
+- Removed __init__.py, it's an application not a package, so we don't need it.
+- installer.py moved a lot of text to constants in the beginning of the file.
+- Moved default values in pyappm_configuration.py to constants in the beginning of the file.
+- Updated pyappm_app_init.py to use more of the config settings.
+- Ditched requests for simple_requests in pyappm_repository_client.py to remove dependency on a non-standard library.
+- Fixed find function, find can now correctly find all and find by name.

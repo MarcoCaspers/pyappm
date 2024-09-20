@@ -68,7 +68,7 @@ from app_dependencies import add_dependency  # type: ignore
 from app_dependencies import remove_dependency
 from app_dependencies import check_if_dep_installed
 
-from app_builder import build_app  # type: ignore
+from pyappm_app_builder import build_app
 
 from pyappm_app_installer import install_app  # type: ignore
 from pyappm_app_installer import uninstall_app
@@ -84,6 +84,7 @@ from pyappm_constants import EX_INVALID_VENV_COMMAND
 from pyappm_constants import EX_INVALID_TOML_COMMAND
 from pyappm_constants import EX_INVALID_VERSION_STRING
 from pyappm_constants import EX_APP_ALREADY_INITIALIZED
+from pyappm_constants import EX_APP_NOT_FOUND
 from pyappm_constants import EX_DEACTIVATE_VENV
 from pyappm_constants import EX_APP_NOT_INSTALLED
 from pyappm_constants import EX_APP_ALREADY_INSTALLED
@@ -126,6 +127,7 @@ def help() -> None:
     print()
     print("  pyappm install [application]                   Install an application")
     print("  pyappm uninstall [application]                 Uninstall an application")
+    print("  pyappm find [application]                      Find the application")
     print()
     print(
         "  pyappm list                                    List the installed applications."
@@ -165,6 +167,7 @@ class PaAppArgs:
     remove_local: Optional[str]
     install: Optional[str]
     uninstall: Optional[str]
+    find: Optional[str]
     init_as_service: bool = False
     build: bool = False
     list: bool = False
@@ -196,6 +199,9 @@ def validate_args() -> None:
         "remove",
         "--remove",
         "-r",
+        "find",
+        "--find",
+        "-f",
         "install",
         "--install",
         "-i",
@@ -240,6 +246,7 @@ def parse_args() -> PaAppArgs:
         sys.exit(1)
     validate_args()
     res = PaAppArgs(
+        None,
         None,
         None,
         None,
@@ -297,6 +304,11 @@ def parse_args() -> PaAppArgs:
             print(EX_NO_APP_SPECIFIED)
             sys.exit(1)
         res.uninstall = arg
+    if cmd in ["find", "--find", "-f"]:
+        if arg is None:
+            print(EX_NO_APP_SPECIFIED)
+            sys.exit(1)
+        res.find = arg
     if cmd in ["build", "--build", "-b"]:
         res.build = True
     if cmd in ["list", "--list", "-l"]:
@@ -386,11 +398,11 @@ def list_installed_apps(config: PyAPPMConfiguration) -> None:
         print(MSG_NOAPPSINSTALLED)
         return
     print(MSG_INSTALLEDAPPS)
-    for toml in apps:
-        app_path = config.app_dir / toml
-        app_toml = app_path / APP_TOML
-        toml = LoadAppToml(app_toml)
-        print(f"  {toml['project']['name']} v{toml['project']['version']}")
+    for app in apps:
+        app_path = config.app_dir / app
+        app_toml_path = app_path / APP_TOML
+        app_toml = LoadAppToml(app_toml_path)
+        print(f"  {app_toml['project']['name']} v{app_toml['project']['version']}")
 
 
 def validate_local(dep: str) -> bool:
@@ -435,6 +447,15 @@ def get_app_details(app: str) -> tuple[str, str, str]:
     return name.strip(), operand, version
 
 
+def ver_to_str(ver) -> str:
+    """Convert the version to a string."""
+    if ver == "*":
+        return ver
+    if ver == "latest":
+        return ver
+    return ".".join(map(str, ver))
+
+
 def main() -> None:
     config: PyAPPMConfiguration = load_config()
     repo: PyAPPMRepositoryManager = PyAPPMRepositoryManager()
@@ -455,6 +476,37 @@ def main() -> None:
             print(f"{name} {EX_APP_ALREADY_INSTALLED}")
             sys.exit(1)
         return install_app(name=name, op=op, version=version, config=config, repo=repo)
+
+    if args.find is not None:
+        print("Searching for", args.find)
+        name, op, version = get_app_details(args.find)
+
+        if name == "all":
+            print("Listing all apps..")
+            apps = repo.list_apps()
+        else:
+            apps = repo.find_app(name, op=op, version=version)
+        if len(apps) == 0:
+            print(f"{name} {EX_APP_NOT_FOUND}")
+            sys.exit(1)
+
+        for a in apps:
+            if "repo" in a:
+                # {'repo': {'app': {'id': 1, 'owner_id': 1, 'name': 'pyappm', 'type': 'application', 'version': [0, 1], 'description': 'Python application manager client', 'created_at': '2024-07-29T00:00:00', 'updated_at': '2024-07-29T00:00:00'}}}
+                name = a["repo"]["app"]["name"]  # type: ignore
+                ver = ver_to_str(a["repo"]["app"]["version"])  # type: ignore
+                app_type = a["repo"]["app"]["type"]  # type: ignore
+                desc = a["repo"]["app"]["description"]
+            else:
+                # {'id': 1, 'owner_id': 1, 'name': 'pyappm', 'type': 'application', 'version': [0, 1], 'description': 'Python application manager client', 'created_at': '2024-07-29T00:00:00', 'updated_at': '2024-07-29T00:00:00'}
+                ver = ""
+                for i in a.get("version", ["*"]):
+                    ver += (str(i) if isinstance(i, int) else i) + "."
+                name = a["name"]
+                app_type = a["type"]
+                desc = a["description"]
+            print(f"{name} version: {ver} type: {app_type} description: {desc}")
+        return
 
     if args.uninstall is not None:
         if not check_if_installed(args.uninstall):
@@ -492,6 +544,10 @@ def main() -> None:
         return VirtualEnvListDependencies(venv_root_path, config)
 
     if args.toml_list is True:
+        if toml_path is None:
+            print(MSG_TOML_NOT_FOUND)
+            print(MSG_CREATE_TOML)
+            sys.exit(1)
         return AppTomlListDependencies(toml_path)
 
     if not IsVirtualEnvActive():
@@ -524,7 +580,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # main()
-    from pyappm_app_init import check_dependencies
+    main()
+    # from pyappm_app_init import check_dependencies
 
-    check_dependencies()
+    # check_dependencies()

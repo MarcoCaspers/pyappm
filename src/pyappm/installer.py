@@ -46,6 +46,11 @@ import subprocess
 from pathlib import Path
 import os
 
+__version__ = "1.1.0"
+__author__ = "Marco Caspers"
+__copyright__ = "Copyright 2024 Marco Caspers"
+__license__ = "MIT License"
+
 # Define the download URL of the pyappm application for the installer to download
 DOWNLOAD_URL = "https://pyappm.nl/downloads/pyappm.zip"
 
@@ -77,6 +82,36 @@ TMP_DIR = Path("/tmp/pyappm")
 # Define the path to the pyappm applications directory
 APP_DIR = Path("~/.pyappm/share/applications").expanduser()
 
+# Error Messages
+ERR_VENV_NOT_INSTALLED = "Error: Python3 venv module is not installed!"
+ERR_NOARGS = "Error: No arguments provided!"
+ERR_UNKNOWN_CMD = "Error: Unknown command:"
+
+# Messages
+
+MSG_PLEASE_INSTALL_VENV = (
+    "Please install the Python3 venv module using the following command:"
+)
+MSG_HOW_TO_INSTALL_VENV = "sudo apt install python3-venv"
+MSG_CREATING_INSTALL_DIR = "Creating Pyappm installation directory:"
+MSG_CREATING_BIN_DIR = "Creating Pyappm bin directory:"
+MSG_CREATING_APP_DIR = "Creating Pyappm applications directory:"
+MSG_CREATING_DL_CACHE = "Creating Pyappm download cache directory:"
+MSG_CREATING_TMP_DIR = "Creating temporary download directory:"
+MSG_DOWNLOADING_APP = "Downloading Pyappm application from:"
+MSG_EXTRACTING_APP = "Extracting Pyappm application to:"
+MSG_REMOVING_TMP_DIR = "Removing temporary download directory:"
+MSG_INSTALLING_PYAPPM = "Installing Pyappm application..."
+MSG_PATH_ADDED = "Added ~/.local/bin to PATH in ~/.bashrc"
+MSG_RESTART_SHELL = "Please restart your shell to apply the changes."
+MSG_ALT_CMD_RESTART_SHELL = "Alternatively, you can run the following command:"
+MSG_SOURCE_BASHRC = "source ~/.bashrc"
+MSG_INSTALLATION_COMPLETE = "Pyappm installation complete!"
+MSG_USAGE = "Usage: ./installer.py [command] [options]"
+MSG_COMMANDS = "Commands:"
+MSG_INSTALL_COMMAND = "  install    Install the Pyappm application"
+MSG_UNINSTALL_COMMAND = "  uninstall  Uninstall the Pyappm application"
+
 
 def uninstall_pyapp() -> None:
     """Uninstall the Pyapp application."""
@@ -90,11 +125,11 @@ def uninstall_pyapp() -> None:
 
 def print_info() -> None:
     """Print the Pyapp information."""
-    print(f"Pyapp Installer v1.0.9")
+    print(f"Pyapp Installer v{__version__}")
     print()
-    print(f"Author: Marco Caspers")
-    print(f"Copyright 2024 Marco Caspers")
-    print(f"License: MIT License")
+    print(f"Author: {__author__}")
+    print(__copyright__)
+    print(f"License: {__license__}")
     print()
 
 
@@ -137,6 +172,12 @@ def check_dependencies() -> None:
         sys.exit(1)
 
 
+def show_venv_help() -> None:
+    print(ERR_VENV_NOT_INSTALLED)
+    print(MSG_PLEASE_INSTALL_VENV)
+    print(MSG_HOW_TO_INSTALL_VENV)
+
+
 def check_python3_venv() -> None:
     """Check if the Python3 venv module is installed."""
     try:
@@ -144,30 +185,26 @@ def check_python3_venv() -> None:
             "dpkg -l | grep python3-venv", shell=True, executable="/bin/bash"
         ).decode("utf-8")
         if output is None or output == "":
-            print("Error: Python3 venv module is not installed!")
-            print("Please install the Python3 venv module using the following command:")
-            print("sudo apt install python3-venv")
+            show_venv_help()
             sys.exit(404)
     except subprocess.CalledProcessError:
-        print("Error: Python3 venv module is not installed!")
-        print("Please install the Python3 venv module using the following command:")
-        print("sudo apt install python3-venv")
+        show_venv_help()
         sys.exit(404)
 
 
 def setup_directories() -> None:
     """Setup the Pyapp directories."""
     if not INSTALL_DIR.exists():
-        print(f"Creating Pyapp installation directory: {INSTALL_DIR}")
+        print(f"{MSG_CREATING_INSTALL_DIR} {INSTALL_DIR}")
         INSTALL_DIR.mkdir(parents=True)
     if not BIN_DIR.exists():
-        print(f"Creating Pyapp bin directory: {BIN_DIR}")
+        print(f"{MSG_CREATING_BIN_DIR} {BIN_DIR}")
         BIN_DIR.mkdir(parents=True)
     if not APP_DIR.exists():
-        print(f"Creating Pyapp applications directory: {APP_DIR}")
+        print(f"{MSG_CREATING_APP_DIR} {APP_DIR}")
         APP_DIR.mkdir(parents=True)
     if not DL_CACHE.exists():
-        print(f"Creating Pyapp download cache directory: {DL_CACHE}")
+        print(f"{MSG_CREATING_DL_CACHE} {DL_CACHE}")
         DL_CACHE.mkdir(parents=True)
 
 
@@ -180,27 +217,27 @@ def rm_rf(path: Path) -> None:
 
 
 def download_pyapp() -> None:
-    """Download the Pyapp application."""
+    """Download the Pyappm application."""
     # Check if the temporary download directory exists
     if not TMP_DIR.exists():
-        print(f"Creating temporary download directory: {TMP_DIR}")
+        print(f"{MSG_CREATING_TMP_DIR}: {TMP_DIR}")
         TMP_DIR.mkdir(parents=True)
     # Download the Pyapp application
-    print(f"Downloading Pyapp application from: {DOWNLOAD_URL}")
+    print(f"{MSG_DOWNLOADING_APP} {DOWNLOAD_URL}")
     subprocess.run(
         ["wget", "-q", "--show-progress", DOWNLOAD_URL, "-O", f"{TMP_DIR}/pyapp.zip"]
     )
     # Extract the Pyapp application
-    print(f"Extracting Pyapp application to: {INSTALL_DIR}")
+    print(f"{MSG_EXTRACTING_APP} {INSTALL_DIR}")
     subprocess.run(["unzip", "-q", "-o", f"{TMP_DIR}/pyapp.zip", "-d", INSTALL_DIR])
     # Remove the temporary download directory
-    print(f"Removing temporary download directory: {TMP_DIR}")
+    print(f"{MSG_REMOVING_TMP_DIR} {TMP_DIR}")
     rm_rf(TMP_DIR)
 
 
 def install_pyapp(add_bin_dir: bool) -> None:
     """Install the Pyapp application."""
-    print(f"Installing Pyappm application")
+    print(MSG_INSTALLING_PYAPPM)
     # perform the installation pre-requisites checks
     check_if_root_or_sudo()
     check_mimimum_python_version()
@@ -218,12 +255,12 @@ def install_pyapp(add_bin_dir: bool) -> None:
 
     if add_bin_dir and not is_bin_dir_in_path():
         add_bin_dir_to_bashrc()
-        print("Added ~/.local/bin to the PATH environment variable.")
-        print("Please restart your shell to apply the changes.")
-        print("You can also run the following command to apply the changes:")
-        print("source ~/.bashrc")
+        print(MSG_PATH_ADDED)
+        print(MSG_RESTART_SHELL)
+        print(MSG_ALT_CMD_RESTART_SHELL)
+        print(MSG_SOURCE_BASHRC)
 
-    print("Pyappm installation complete!")
+    print(MSG_INSTALLATION_COMPLETE)
 
 
 def is_bin_dir_in_path() -> bool:
@@ -244,17 +281,17 @@ def add_bin_dir_to_bashrc() -> None:
 
 def usage() -> None:
     """Print the usage of the Pyapp installer."""
-    print(f"Usage: {sys.argv[0]} <command>")
-    print(f"Commands:")
-    print(f"  install    Install the Pyapp application")
-    print(f"  uninstall  Uninstall the Pyapp application")
+    print(MSG_USAGE)
+    print(MSG_COMMANDS)
+    print(MSG_INSTALL_COMMAND)
+    print(MSG_UNINSTALL_COMMAND)
 
 
 def main() -> None:
     """Main entry point of the Pyapp installer."""
     print_info()
     if len(sys.argv) == 1:
-        print("Error: No arguments provided!")
+        print(ERR_NOARGS)
         usage()
         sys.exit(1)
     if sys.argv[1] == "install":
@@ -265,7 +302,7 @@ def main() -> None:
     elif sys.argv[1] == "uninstall":
         uninstall_pyapp()
     else:
-        print(f"Error: Unknown command {sys.argv[1]}!")
+        print(f"{ERR_UNKNOWN_CMD} {sys.argv[1]}!")
         usage()
         sys.exit(1)
 

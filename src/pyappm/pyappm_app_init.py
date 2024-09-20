@@ -91,11 +91,11 @@ def write_pyapp_py(path: Path, app_name: str, config: PyAPPMConfiguration) -> No
 # This is the main entry point for the {app_name} application
 #
 
-def run() -> None:
+def {config.default_main_function}() -> None:
     print("Hello from {app_name}!")
     
 if __name__ == "__main__":
-    run()
+    {config.default_main_function}()
 
 """
         )
@@ -144,6 +144,9 @@ def init_pyapp(path: str, is_service: bool, config: PyAPPMConfiguration) -> None
     if config.create_about is True:
         print("Initializing __about__.py")
         Path(pth, "src", app_name, "__about__.py").touch()
+        run_command(
+            f"cd {pth} && echo '__version__ = \"{config.default_app_version}\"' > src/{app_name}/__about__.py"
+        )
     if config.create_typed is True:
         print("Initializing py.typed")
         Path(pth, "src", app_name, "py.typed").touch()
@@ -160,9 +163,11 @@ def init_pyapp(path: str, is_service: bool, config: PyAPPMConfiguration) -> None
     if config.create_readme:
         print("Initializing README.md")
         Path(pth, "README.md").touch()
+        cmd = f"cd {pth} && echo '# {app_name}' > README.md\n\n"
     if config.create_license:
         print("Initializing LICENSE.txt")
         Path(pth, "LICENSE.txt").touch()
+        cmd = f"cd {pth} && echo '{config.license_text}' > LICENSE.txt"
     print(f"Initializing {app_name}.py")
     write_pyapp_py(
         Path(pth, "src", app_name, f"{app_name}.py"),
@@ -178,7 +183,7 @@ def init_pyapp(path: str, is_service: bool, config: PyAPPMConfiguration) -> None
         # Check if git is installed
         cmd = "git --version"
         result = run_command(cmd)
-        if result.returncode != 0:
+        if result != 0:
             print("Git is not installed. Skipping git init.")
         else:
             print("Running git init")

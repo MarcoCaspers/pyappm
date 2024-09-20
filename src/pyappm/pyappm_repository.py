@@ -34,7 +34,6 @@
 
 from pathlib import Path
 
-from simple_requests import get  # type: ignore
 from simple_requests import Response
 
 from pyappm_tools import compare_parsed_versions  # type: ignore
@@ -82,9 +81,7 @@ class PyAPPMRepositoryManager:
         data = response.json
         if data is None:
             return apps
-        if "applications" not in data:
-            return apps
-        for app in data["applications"]:
+        for app in data:
             app["version"] = parse_version(app["version"])
             apps.append(app)
         return apps
@@ -133,15 +130,15 @@ class PyAPPMRepositoryManager:
                 apps.append(rap)
         return apps
 
-    def get_app(
+    def find_app(
         self, name: str, op: str | None, version: str | None
     ) -> list[pyappm_repo_app_version]:
         """Get the application from the repository."""
         with PyappmRepositoryClient() as client:
-            apps = client.apps_find(name)
+            apps = client.apps_find(app=name)
         if apps.status_code != 200:
             return []
-        apps = self.__get_apps_from_response__(apps)
+        apps_lst = self.__get_apps_from_response__(apps)
         if op is None:
             op = "*"  # default to any version
         if version is None:
@@ -149,11 +146,26 @@ class PyAPPMRepositoryManager:
         else:
             version = parse_version(version)
         return [
-            app
-            for app in apps
-            if app["app"]["name"] == name
-            and compare_parsed_versions(app["app"]["version"], op, version) is True
+            {"repo": {"app": app}}  # type: ignore
+            for app in apps_lst
+            if app["name"] == name
+            and compare_parsed_versions(app["version"], op, version) is True
         ]
+
+    def list_apps(self) -> list:
+        """Get the application listfrom the repository."""
+        with PyappmRepositoryClient() as client:
+            apps: Response = client.apps_list()
+        # self.print_response(apps)
+        if apps.status_code != 200:
+            return []
+        return self.__get_apps_from_response__(apps)
+
+    def print_response(self, response: Response) -> None:
+        """Print the response."""
+        print(f"Status code: {response.status_code}")
+        print(f"Headers:     {response.headers}")
+        print(f"Response:    {response.text}")
 
     def get_latest_app(
         self, app_list: list[pyappm_repo_app_version]

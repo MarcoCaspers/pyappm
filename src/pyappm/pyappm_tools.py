@@ -69,9 +69,9 @@ def FindAppToml() -> Path | None:
     return None
 
 
-def run_command(command: str) -> None:
+def run_command(command: str) -> int:
     """Run a command in a subprocess."""
-    subprocess.call(command, shell=True, executable=SHELL_EXE)
+    return subprocess.call(command, shell=True, executable=SHELL_EXE)
 
 
 def run_command_output(command: str) -> str:
@@ -126,6 +126,10 @@ def load_app_toml(name: str) -> DotDict:
 
 
 def parse_version(version):
+    if version == "*":
+        return version
+    if version == "latest":
+        return version
     return list(map(int, version.split(".")))
 
 
